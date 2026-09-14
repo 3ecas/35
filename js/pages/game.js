@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
         Game.RoundView.menu();
     }
 
-    // Pieces are read out of IMG/ first when liveArt is on, so the very first
+    // Pieces are read out of ICONS/ first when liveArt is on, so the very first
     // frame already has them and nothing has to be repainted. It never blocks
     // the game: anything missing, slow or unreadable falls back to the art
     // baked into icons.js.

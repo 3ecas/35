@@ -53,7 +53,7 @@ Game.Config = {
 
         fallEven: true,
 
-        liveArt: true,      // read ICONS/EXPORT/ on every load
+        liveArt: true,      // PNGs in ICONS/ replace the built-in piece art
         liveArtWait: 1500,
 
         clearColumns: false,

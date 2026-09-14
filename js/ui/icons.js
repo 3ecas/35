@@ -588,7 +588,7 @@ window.Game = window.Game || {};
         },
 
         // the piece art, by name — LiveArt reads this to know what to look for
-        // in IMG/, and writes back over it with whatever it finds
+        // in ICONS/, and writes back over it with whatever it finds
         keys: function () {
             return Object.keys(art);
         },

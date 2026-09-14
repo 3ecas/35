@@ -16,6 +16,7 @@ $types = @{
     ".json" = "application/json; charset=utf-8"
     ".md"   = "text/plain; charset=utf-8"
     ".svg"  = "image/svg+xml"
+    ".png"  = "image/png"
 }
 
 while ($listener.IsListening) {
@@ -32,6 +33,18 @@ while ($listener.IsListening) {
                 if (-not $type) { $type = "application/octet-stream" }
                 $bytes = [System.IO.File]::ReadAllBytes($full)
                 $context.Response.ContentType = $type
+            } elseif (Test-Path $full -PathType Container) {
+                # listed the way serve.py lists, which is what the game reads ICONS/ from
+                $links = foreach ($item in Get-ChildItem -LiteralPath $full | Sort-Object Name) {
+                    $slash = if ($item.PSIsContainer) { "/" } else { "" }
+                    $href = [System.Uri]::EscapeDataString($item.Name) + $slash
+                    $text = [System.Net.WebUtility]::HtmlEncode($item.Name + $slash)
+                    "<li><a href=`"$href`">$text</a></li>"
+                }
+                $title = [System.Net.WebUtility]::HtmlEncode("Directory listing for $path")
+                $html = "<!DOCTYPE html><html><head><meta charset=`"utf-8`"><title>$title</title></head><body><ul>$($links -join '')</ul></body></html>"
+                $bytes = [System.Text.Encoding]::UTF8.GetBytes($html)
+                $context.Response.ContentType = "text/html; charset=utf-8"
             } else {
                 $context.Response.StatusCode = 404
                 $context.Response.ContentType = "text/plain; charset=utf-8"
