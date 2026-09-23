@@ -383,9 +383,11 @@ window.Game = window.Game || {};
                 var lit = fuseLit(pair.eat);
                 if (lit.length) {
                     var salvage = 0;
+                    var took = 0;
                     var wrecked = blast(lit).map(function (cell) {
                         var was = Game.Pieces.byId(cell.piece);
                         salvage += (was && was.points) || 0;
+                        if (cell.piece !== Game.Pieces.dynamite.id) took++;
                         cell.piece = null;
                         return cell.id;
                     });
@@ -393,6 +395,7 @@ window.Game = window.Game || {};
                     steps.push({
                         type: "blast",
                         cells: wrecked,
+                        took: took,            // pieces it destroyed, sticks aside
                         points: Math.round(salvage * (over.blastPays || 0)),
                         board: snapshot()
                     });
@@ -564,9 +567,11 @@ window.Game = window.Game || {};
             if (!lit.length) return null;
 
             var salvage = 0;
+            var took = 0;
             var wrecked = blast(lit).map(function (cell) {
                 var was = Game.Pieces.byId(cell.piece);
                 salvage += (was && was.points) || 0;
+                if (cell.piece !== stick) took++;
                 cell.piece = null;
                 cell.fuse = 0;
                 return cell.id;
@@ -577,6 +582,7 @@ window.Game = window.Game || {};
                     {
                         type: "blast",
                         cells: wrecked,
+                        took: took,
                         points: Math.round(
                             salvage * (Game.Config.game.blastPays || 0)
                         ),

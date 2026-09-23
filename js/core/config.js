@@ -97,6 +97,10 @@ Game.Config = {
         // rather than scored, so it costs the same at dirt as at diamond.
         starPace: 24,
 
+        // A blast that takes this many pieces or more, the sticks aside, fills
+        // the star outright, on top of what the chains put in. 0 turns it off.
+        starBlast: 4,
+
         // merges that fill the bomb — any merge, one for one
         bombPace: 24,
 
