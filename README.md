@@ -154,7 +154,9 @@ for the pieces it is there to solve — with nothing growing up behind the
 window, it is the only thing that shifts a piece you can never complete. One caught in another's blast goes off in turn, so a
 line of them runs.
 
-**Nothing ends the game but a full board.** The vault has nothing above it, so
+**Nothing ends the game but a full board** — and not even that while a stick is
+standing on it: every stick on the board goes off first, and the run carries
+on in the room that makes. The vault has nothing above it, so
 it simply sits there taking a square — reaching the top is not a win, it is the
 start of the squeeze. The score is the point.
 

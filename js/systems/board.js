@@ -441,6 +441,35 @@ window.Game = window.Game || {};
         return { steps: steps, made: made, points: points };
     }
 
+    /* sticks going off outside a merge: the blast, then the board settles */
+    function setOff(lit) {
+        var stick = Game.Pieces.dynamite.id;
+        var salvage = 0;
+        var took = 0;
+        var wrecked = blast(lit).map(function (cell) {
+            var was = Game.Pieces.byId(cell.piece);
+            salvage += (was && was.points) || 0;
+            if (cell.piece !== stick) took++;
+            cell.piece = null;
+            cell.fuse = 0;
+            return cell.id;
+        });
+
+        return report(
+            resolve([
+                {
+                    type: "blast",
+                    cells: wrecked,
+                    took: took,
+                    points: Math.round(
+                        salvage * (Game.Config.game.blastPays || 0)
+                    ),
+                    board: snapshot()
+                }
+            ])
+        );
+    }
+
     Game.Board = {
         size: function () {
             return { cols: cols, rows: rows };
@@ -564,32 +593,18 @@ window.Game = window.Game || {};
                 if (cell.fuse >= limit) lit.push(cell);
             });
 
-            if (!lit.length) return null;
+            return lit.length ? setOff(lit) : null;
+        },
 
-            var salvage = 0;
-            var took = 0;
-            var wrecked = blast(lit).map(function (cell) {
-                var was = Game.Pieces.byId(cell.piece);
-                salvage += (was && was.points) || 0;
-                if (cell.piece !== stick) took++;
-                cell.piece = null;
-                cell.fuse = 0;
-                return cell.id;
+        // Every stick on the board at once, fuse or no fuse. A full board
+        // does this before it ends the run.
+        detonate: function () {
+            var stick = Game.Pieces.dynamite.id;
+            var lit = cells.filter(function (cell) {
+                return cell.piece === stick;
             });
 
-            return report(
-                resolve([
-                    {
-                        type: "blast",
-                        cells: wrecked,
-                        took: took,
-                        points: Math.round(
-                            salvage * (Game.Config.game.blastPays || 0)
-                        ),
-                        board: snapshot()
-                    }
-                ])
-            );
+            return lit.length ? setOff(lit) : null;
         },
 
         fuseAt: function (id) {

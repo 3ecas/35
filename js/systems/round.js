@@ -303,6 +303,20 @@ window.Game = window.Game || {};
         }
     }
 
+    /* A full board ends the run, but not while a stick is standing on it:
+       every stick goes off first, and the run carries on in the room that
+       makes. True only when there is still nowhere to drop. */
+    function stuck() {
+        if (!Game.Board.isFull()) return false;
+
+        var blown = Game.Board.detonate();
+        if (blown && blown.steps.length) {
+            Game.Events.emit("game:rain", { steps: blown.steps, count: 0 });
+            absorb(blown, 0);
+        }
+        return Game.Board.isFull();
+    }
+
     /* Everything that happens after a piece lands, whoever put it there.
        `free` is for a piece that arrives without costing the player a move. */
     function turn(result, free) {
@@ -329,7 +343,7 @@ window.Game = window.Game || {};
             Game.Events.emit("game:choosing", { owed: Game.Board.owes() });
         }
 
-        if (Game.Board.isFull()) finish("full");
+        if (stuck()) finish("full");
         else keep();
 
         return result;
@@ -545,8 +559,8 @@ window.Game = window.Game || {};
                 Game.Events.emit("game:chosen", {});
             }
 
-            keep();
-            if (Game.Board.isFull()) finish("full");
+            if (stuck()) finish("full");
+            else keep();
             return out;
         },
 
