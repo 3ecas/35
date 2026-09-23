@@ -1,4 +1,4 @@
-/* The two dials that flank the hand. Quiet by design: a disc that fills, the
+/* The bomb dial beside the hand. Quiet by design: a disc that fills, the
    piece on top, and a ring that only brightens once it is worth pressing. */
 
 .tray {
@@ -11,7 +11,6 @@
 }
 
 .tray .hand { grid-column: 2; }
-.tray .dial--star { justify-self: end; }
 .tray .dial--bomb { justify-self: start; }
 
 .dial {
@@ -59,11 +58,6 @@
     filter: none;
 }
 
-.dial--star.is-ready {
-    border-color: var(--i-star-deep);
-    box-shadow: 0 0 10px rgba(255, 201, 63, 0.4);
-}
-
 .dial--bomb.is-ready {
     border-color: var(--i-tnt-deep);
     box-shadow: 0 0 10px rgba(194, 112, 95, 0.4);
@@ -72,11 +66,6 @@
 /* taken in hand: the board is waiting for the square it acts on */
 .dial.is-armed {
     transform: translateY(-2px) scale(1.06);
-}
-
-.dial--star.is-armed {
-    border-color: var(--i-star-deep);
-    box-shadow: 0 0 16px rgba(255, 201, 63, 0.55);
 }
 
 .dial--bomb.is-armed {

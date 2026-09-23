@@ -108,18 +108,18 @@ window.Game = window.Game || {};
         },
         {
             title: "A star draws out a kind",
-            line: "Wake it with a merge, name a piece, and every one of them is pulled off the board.",
+            line: "Stars fall in now and then. Blow one up, tap a piece, and every one like it goes.",
             hold: 560,
             frames: [
-                board({ 9: "coal", 14: "coal", 15: "dirt", 16: "dirt", 18: "lodestone", 19: "coal" }),
-                board({ 2: "dirt", 9: "coal", 14: "coal", 15: "dirt", 16: "dirt", 18: "lodestone", 19: "coal" }, [], [2]),
-                board({ 12: "dirt", 9: "coal", 14: "coal", 15: "dirt", 16: "dirt", 18: "lodestone", 19: "coal" }, [], [12]),
-                board({ 9: "coal", 14: "coal", 15: "dirt", 16: "dirt", 17: "dirt", 18: "lodestone", 19: "coal" }),
-                board({ 9: "coal", 14: "coal", 15: "dirt", 16: "dirt", 17: "dirt", 18: "lodestone", 19: "coal" }, [15, 16, 17], [18]),
-                board({ 9: "coal", 14: "coal", 16: "rock", 18: "lodestone", 19: "coal" }, [], [9, 14, 19]),
-                board({ 9: "coal", 14: "coal", 16: "rock", 18: "lodestone", 19: "coal" }, [9, 14, 18, 19]),
-                board({ 16: "rock" }),
-                board({ 16: "rock" })
+                board({ 10: "dirt", 11: "coal", 13: "coal", 15: "coal", 16: "dirt", 17: "rock", 18: "dynamite", 19: "lodestone" }),
+                board({ 10: "dirt", 11: "coal", 13: "coal", 15: "coal", 16: "dirt", 17: "rock", 18: "dynamite", 19: "lodestone" }, [], [18]),
+                board({ 10: "dirt", 11: "coal", 13: "coal", 15: "coal", 16: "dirt", 17: "rock", 18: "dynamite", 19: "lodestone" }, [13, 17, 18, 19]),
+                board({ 10: "dirt", 11: "coal", 15: "coal", 16: "dirt" }),
+                board({ 10: "dirt", 11: "coal", 15: "coal", 16: "dirt" }, [], [11]),
+                board({ 10: "dirt", 11: "coal", 15: "coal", 16: "dirt" }, [], [11, 15]),
+                board({ 10: "dirt", 11: "coal", 15: "coal", 16: "dirt" }, [11, 15]),
+                board({ 15: "dirt", 16: "dirt" }),
+                board({ 15: "dirt", 16: "dirt" })
             ]
         }
     ];

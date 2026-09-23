@@ -3,13 +3,14 @@ window.Game = window.Game || {};
 /* =============================================================================
    CHARGE VIEW
    -----------------------------------------------------------------------------
-   The two dials beside the hand. Each is a small disc that fills like a glass:
-   a level that rises as the charge does, with a few motes drifting up through
+   The bomb dial beside the hand. A small disc that fills like a glass: a
+   level that rises as the charge does, with a few motes drifting up through
    it so the thing is visibly alive without asking for attention. It is meant to
    be read out of the corner of the eye — the piece sitting on top is what you
    are actually looking at.
 
-   Both dials share this renderer; only their colour and what feeds them differ.
+   Any [data-charge] button gets this renderer, so a second dial would only
+   need its markup.
    ============================================================================= */
 
 (function () {
@@ -20,25 +21,10 @@ window.Game = window.Game || {};
     var still = false;
     var last = 0;
 
-    /* ---- the pieces themselves, small enough to be dust ---------------------
-       A dial throws off what it is: four-pointed stars from the star, little
-       sticks from the bomb. Both are drawn rather than scaled down from the
-       art, because at four pixels the real drawings are a smudge — what
-       survives at this size is the silhouette and nothing else. */
-    function star(ctx, x, y, r, turn) {
-        var waist = r * 0.34;
-        ctx.beginPath();
-        for (var i = 0; i < 8; i++) {
-            var reach = i % 2 ? waist : r;
-            var a = turn + i * Math.PI / 4;
-            var px = x + Math.cos(a) * reach;
-            var py = y + Math.sin(a) * reach;
-            if (i) ctx.lineTo(px, py); else ctx.moveTo(px, py);
-        }
-        ctx.closePath();
-        ctx.fill();
-    }
-
+    /* ---- the piece itself, small enough to be dust ---------------------------
+       The dial throws off what it is: little sticks. Drawn rather than scaled
+       down from the art, because at four pixels the real drawing is a smudge —
+       what survives at this size is the silhouette and nothing else. */
     function stick(ctx, x, y, r, turn) {
         var w = r * 1.5;
         var h = r * 0.95;
@@ -94,7 +80,7 @@ window.Game = window.Game || {};
 
         var one = {
             name: host.getAttribute("data-charge"),
-            shape: host.getAttribute("data-charge") === "bomb" ? stick : star,
+            shape: stick,
             host: host,
             canvas: canvas,
             ctx: canvas.getContext("2d"),

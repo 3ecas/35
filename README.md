@@ -133,12 +133,15 @@ with the most room rather than uniformly, so it can no longer land three of its
 four pieces on the one stack already near the ceiling. You still do not choose
 where it goes — you just no longer lose to it landing all in one place.
 
-**A lodestone draws out a kind.** Rarer than dynamite and answering a
-different problem: dynamite clears a *place*, a lodestone clears a *kind*. A
-merge landing against one wakes it, the board stops and lights up, and whatever
-piece you name is pulled off it wherever it happens to be — which is the only
-thing that shifts one stranded here and another stranded three columns over.
-It pays the same salvage a blast does.
+**A star draws out a kind.** It falls in with the seam now and then, once you
+are past 6,250 points, and answers a different problem from dynamite:
+dynamite clears a *place*, a star clears a *kind*. It joins nothing, and a
+merge beside it does nothing — only a blast sets it off. Catch one in a
+stick's eight squares, the board stops and lights up, and whatever piece you
+name is pulled off it wherever it happens to be — which is the only thing that
+shifts one stranded here and another stranded three columns over. It pays the
+same salvage a blast does. You cannot place one; the bomb is the only thing
+you put on the board yourself.
 
 **Dynamite is the way out.** Once you are past 1,250 points it starts coming in
 with the seam. It joins nothing, and a merge landing against it sets it off:

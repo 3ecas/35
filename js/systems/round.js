@@ -305,7 +305,8 @@ window.Game = window.Game || {};
 
     /* A full board ends the run, but not while a stick is standing on it:
        every stick goes off first, and the run carries on in the room that
-       makes. True only when there is still nowhere to drop. */
+       makes. Nor while a star's sweep is still owed — naming a piece makes
+       room too. True only when there is no way left to go on. */
     function stuck() {
         if (!Game.Board.isFull()) return false;
 
@@ -314,7 +315,7 @@ window.Game = window.Game || {};
             Game.Events.emit("game:rain", { steps: blown.steps, count: 0 });
             absorb(blown, 0);
         }
-        return Game.Board.isFull();
+        return Game.Board.isFull() && Game.Board.owes() <= 0;
     }
 
     /* Everything that happens after a piece lands, whoever put it there.
@@ -336,6 +337,10 @@ window.Game = window.Game || {};
             absorb(blown, 0);
         }
 
+        // before the sweep is asked for: a star caught in a full board's last
+        // blast is owed like any other
+        var over = stuck();
+
         Game.Events.emit("game:placed", { result: result });
         Game.Events.emit("game:hand", {});
 
@@ -343,7 +348,7 @@ window.Game = window.Game || {};
             Game.Events.emit("game:choosing", { owed: Game.Board.owes() });
         }
 
-        if (stuck()) finish("full");
+        if (over) finish("full");
         else keep();
 
         return result;

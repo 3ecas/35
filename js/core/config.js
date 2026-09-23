@@ -44,7 +44,7 @@ Game.Config = {
         // Negative numbers push the other way — fallFewer: -1 adds a piece to
         // every fall. One less piece per fall, at the table's own spacing: the
         // extra play between falls is gone, which is where the pressure the
-        // star and the bomb take off the board is paid back.
+        // bomb and the stars take off the board is paid back.
         fallFewer: 1,
         fallSlower: 0,
 
@@ -86,20 +86,13 @@ Game.Config = {
         dynamiteChance: 0,
         dynamiteCap: 1,
 
-        // The star is no longer dealt into the grid — it is charged on the
-        // meter under the board and spent from there. js/systems/starmeter.js
+        // The star falls in with the seam again, in place of a piece: past
+        // lodestoneFrom points, each falling piece has this chance of being
+        // one. It joins nothing, and only a blast sets it off — then you name
+        // a piece and every one of them goes.
         lodestoneFrom: 6250,
-        lodestoneChance: 0,
+        lodestoneChance: 0.015,
         lodestoneCap: 1,
-
-        // Chain multiplier, over and above 1, that fills the star. A plain
-        // merge scores nothing here; a three-deep cascade pays 1 + 2. Counted
-        // rather than scored, so it costs the same at dirt as at diamond.
-        starPace: 24,
-
-        // A blast that takes this many pieces or more, the sticks aside, fills
-        // the star outright, on top of what the chains put in. 0 turns it off.
-        starBlast: 4,
 
         // merges that fill the bomb — any merge, one for one
         bombPace: 24,

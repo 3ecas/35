@@ -54,8 +54,8 @@ window.Game = window.Game || {};
     }
 
     /* Which way two pieces count as touching. Corners make a group far easier
-       to close, so it is a switch rather than a constant. Rubble, dynamite and
-       the lodestone keep to the four sides — this is about merging only. */
+       to close, so it is a switch rather than a constant. Rubble and dynamite
+       keep to the four sides — this is about merging only. */
     var SIDES = [[0, -1], [-1, 0], [1, 0], [0, 1]];
     var CORNERS = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
 
@@ -146,24 +146,6 @@ window.Game = window.Game || {};
         return lit;
     }
 
-    function stonesWoken(cells) {
-        var woken = [];
-        var seen = {};
-
-        cells.forEach(function (cell) {
-            [[0, -1], [0, 1], [-1, 0], [1, 0]].forEach(function (step) {
-                var near = at(cell.x + step[0], cell.y + step[1]);
-                if (!near || seen[near.id]) return;
-                if (near.piece !== Game.Pieces.lodestone.id) return;
-
-                seen[near.id] = true;
-                woken.push(near);
-            });
-        });
-
-        return woken;
-    }
-
     function blast(sticks) {
         var gone = {};
         var fired = {};
@@ -198,6 +180,30 @@ window.Game = window.Game || {};
         return Object.keys(gone).map(function (id) {
             return gone[id];
         });
+    }
+
+    /* A blast as a step: everything in reach goes, paid at its worth, and
+       every star caught in it owes the board a sweep — the player names a
+       piece and every one of them goes. A blast is the only thing that sets
+       a star off. */
+    function wreck(lit) {
+        var star = Game.Pieces.lodestone.id;
+        var salvage = 0;
+        var gone = blast(lit).map(function (cell) {
+            var was = Game.Pieces.byId(cell.piece);
+            salvage += (was && was.points) || 0;
+            if (cell.piece === star) owed += 1;
+            cell.piece = null;
+            cell.fuse = 0;
+            return cell.id;
+        });
+
+        return {
+            type: "blast",
+            cells: gone,
+            points: Math.round(salvage * (Game.Config.game.blastPays || 0)),
+            board: snapshot()
+        };
     }
 
     function fullLine() {
@@ -365,41 +371,8 @@ window.Game = window.Game || {};
                     }
                 }
 
-                var woken = stonesWoken(pair.eat);
-                if (woken.length) {
-                    owed += woken.length;
-                    steps.push({
-                        type: "wake",
-                        cells: woken.map(function (cell) {
-                            cell.piece = null;
-                            cell.fuse = 0;
-                            return cell.id;
-                        }),
-                        points: 0,
-                        board: snapshot()
-                    });
-                }
-
                 var lit = fuseLit(pair.eat);
-                if (lit.length) {
-                    var salvage = 0;
-                    var took = 0;
-                    var wrecked = blast(lit).map(function (cell) {
-                        var was = Game.Pieces.byId(cell.piece);
-                        salvage += (was && was.points) || 0;
-                        if (cell.piece !== Game.Pieces.dynamite.id) took++;
-                        cell.piece = null;
-                        return cell.id;
-                    });
-
-                    steps.push({
-                        type: "blast",
-                        cells: wrecked,
-                        took: took,            // pieces it destroyed, sticks aside
-                        points: Math.round(salvage * (over.blastPays || 0)),
-                        board: snapshot()
-                    });
-                }
+                if (lit.length) steps.push(wreck(lit));
             } else {
                 var line = fullLine();
                 if (!line) break;
@@ -443,31 +416,7 @@ window.Game = window.Game || {};
 
     /* sticks going off outside a merge: the blast, then the board settles */
     function setOff(lit) {
-        var stick = Game.Pieces.dynamite.id;
-        var salvage = 0;
-        var took = 0;
-        var wrecked = blast(lit).map(function (cell) {
-            var was = Game.Pieces.byId(cell.piece);
-            salvage += (was && was.points) || 0;
-            if (cell.piece !== stick) took++;
-            cell.piece = null;
-            cell.fuse = 0;
-            return cell.id;
-        });
-
-        return report(
-            resolve([
-                {
-                    type: "blast",
-                    cells: wrecked,
-                    took: took,
-                    points: Math.round(
-                        salvage * (Game.Config.game.blastPays || 0)
-                    ),
-                    board: snapshot()
-                }
-            ])
-        );
+        return report(resolve([wreck(lit)]));
     }
 
     Game.Board = {
@@ -539,12 +488,6 @@ window.Game = window.Game || {};
         },
 
         owes: function () {
-            return owed;
-        },
-
-        // a sweep granted from outside the grid — the star dial spends one
-        owe: function (many) {
-            owed += many || 1;
             return owed;
         },
 
