@@ -18,7 +18,7 @@ Game.Config = {
         // count the corners as touching too, not just the four sides
         mergeDiagonals: false,
 
-        dealBehind: 1,   // was 2 — deal closer to your best piece
+        dealBehind: 0,   // was 1 — your best piece is dealt as soon as you make it
 
         growStranded: false,
 

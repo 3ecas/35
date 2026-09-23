@@ -153,21 +153,24 @@ window.Game = window.Game || {};
         var steps = [];
         var wide = Game.Board.size().cols;
 
+        // The opening is a few dirt and nothing else. It stops short rather
+        // than let one merge before the first move, which would put a stone
+        // on the board that the run has not made yet.
+        var dirt = Game.Pieces.list[0];
+
         for (var i = 0; i < settings().seedPieces; i++) {
             var free = [];
             for (var col = 0; col < wide; col++) {
                 if (Game.Board.landing(col)) free.push(col);
             }
-            if (!free.length) break;
 
-            var piece = Game.Pieces.randomFor(1);
             var calm = free.filter(function (col) {
-                return !Game.Board.wouldJoin(col, piece.id);
+                return !Game.Board.wouldJoin(col, dirt.id);
             });
-            var pool = calm.length ? calm : free;
+            if (!calm.length) break;
 
-            var where = pool[Math.floor(Math.random() * pool.length)];
-            var result = Game.Board.drop(where, piece.id);
+            var where = calm[Math.floor(Math.random() * calm.length)];
+            var result = Game.Board.drop(where, dirt.id);
             if (result) steps = steps.concat(result.steps);
         }
 
@@ -341,7 +344,8 @@ window.Game = window.Game || {};
     }
 
     function raise(made, depth) {
-        var before = Game.Pieces.dealing(state.highest)[0];
+        var was = Game.Pieces.dealing(state.highest);
+        var before = was[0];
 
         made.forEach(function (step) {
             var piece = Game.Pieces.byId(step.piece);
@@ -350,12 +354,16 @@ window.Game = window.Game || {};
 
         checkSeam();
 
-        var after = Game.Pieces.dealing(state.highest)[0];
-        if (after === before || depth > 12) return;
+        // The window moves at either end. Early on it only grows at the top,
+        // with dirt still at the bottom, and that is a new deal all the same.
+        var now = Game.Pieces.dealing(state.highest);
+        var after = now[0];
+        if ((after === before && now.length === was.length) || depth > 12) return;
 
         Game.Events.emit("game:dealing", { lowest: after });
 
-        if (!settings().growStranded) return;
+        // only a rung dropping off the bottom leaves anything stranded
+        if (!settings().growStranded || after === before) return;
 
         state.hand = state.hand.map(function (piece) {
             return grownTo(piece, after.tier);

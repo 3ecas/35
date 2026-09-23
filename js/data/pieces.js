@@ -86,8 +86,8 @@ window.Game = window.Game || {};
         return piece.tier > 1;
     });
 
-    var WINDOW = 3;
-    var CHANCE = [46, 34, 20];
+    var WINDOW = 4;
+    var CHANCE = [46, 34, 20, 10];
 
     function windowTop(highestTier) {
         var behind = Game.Config.game.dealBehind;
@@ -95,7 +95,10 @@ window.Game = window.Game || {};
         var made = highestTier || 1;
         var reach = made >= peak ? peak : made - behind;
 
-        return Math.max(WINDOW, Math.min(reach, peak - (made >= peak ? 0 : 2)));
+        // No floor of a full window: a run starts on dirt alone and every rung
+        // it makes joins the deal, until there are four and the bottom one
+        // drops off — zinc is what takes dirt out of the hand.
+        return Math.max(1, Math.min(reach, peak - (made >= peak ? 0 : 2)));
     }
 
     Game.Pieces = {

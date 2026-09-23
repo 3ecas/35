@@ -82,14 +82,17 @@ behind it rather than covering it, so the run you just lost stays in sight.
 The screen is the board and the hand, and that is all. An arrow in the top
 left goes back to the menu, and the button centred at the foot of the screen
 opens the ladder: all nineteen rungs standing on end, scrollable, lit as
-far as you have climbed *this game*, with a ring on the three being dealt. It
+far as you have climbed *this game*, with a ring on the rungs being dealt. It
 opens where you are rather than at the top, so the rungs in your hand are the
 ones you see first.
 
-**The hand climbs with you.** Only three rungs are ever dealt, and the window
-slides up as you go, trailing two rungs behind the best thing you have made.
-Without that the ladder caps out around six rungs and the top is unreachable
-however long you play. The top two rungs are never dealt; those you build.
+**The hand climbs with you.** A run starts on dirt alone: the opening drops a
+few dirt and the hand deals nothing else. Every rung you make joins the deal
+the moment you make it — stone, then coal, then iron — up to four at once, and
+making zinc is what takes dirt out of the hand. From there the window slides up
+with the best thing you have made, always four wide. Without that the ladder
+caps out around six rungs and the top is unreachable however long you play.
+The top two rungs are never dealt; those you build.
 
 **The same piece comes at most twice in a row.** Beyond that the hand has to
 offer you something else. Three of a kind in a row is a gift, not a puzzle.
