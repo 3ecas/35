@@ -6,7 +6,7 @@ Game.Config = {
 
         cols: 6,
         rows: 6,
-        seedPieces: 6,
+        seedPieces: 1,   // was 6 — a lone dirt to drop onto, so the first merge teaches itself
         handSize: 1,
 
         introPause: 500,

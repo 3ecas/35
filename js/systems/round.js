@@ -153,7 +153,7 @@ window.Game = window.Game || {};
         var steps = [];
         var wide = Game.Board.size().cols;
 
-        // The opening is a few dirt and nothing else. It stops short rather
+        // The opening is dirt and nothing else. It stops short rather
         // than let one merge before the first move, which would put a stone
         // on the board that the run has not made yet.
         var dirt = Game.Pieces.list[0];

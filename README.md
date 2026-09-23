@@ -87,7 +87,8 @@ opens where you are rather than at the top, so the rungs in your hand are the
 ones you see first.
 
 **The hand climbs with you.** A run starts on dirt alone: the opening drops a
-few dirt and the hand deals nothing else. Every rung you make joins the deal
+single dirt and the hand deals nothing else, so the first thing a run asks is
+to build on it until three merge into stone. Every rung you make joins the deal
 the moment you make it — stone, then coal, then iron — up to four at once, and
 making zinc is what takes dirt out of the hand. From there the window slides up
 with the best thing you have made, always four wide. Without that the ladder
