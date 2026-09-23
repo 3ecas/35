@@ -175,17 +175,17 @@ window.Game = window.Game || {};
             fired[stick.id] = true;
             gone[stick.id] = stick;
 
-            // A cross, not a square: the four sides only, run out `blastReach`
-            // cells each way. The corners are left standing, which is the whole
-            // point, and the longer arms give back the reach the square had.
+            // A square, not a cross: every cell within `blastReach` of the
+            // stick, corners included. At 1 that is the eight squares around
+            // it and nothing further out.
             var far = Math.max(1, Game.Config.game.blastReach || 1);
 
-            for (var i = 0; i < SIDES.length; i++) {
-                for (var step = 1; step <= far; step++) {
-                    var near = at(stick.x + SIDES[i][0] * step,
-                                  stick.y + SIDES[i][1] * step);
-                    if (!near) break;                 // off the board: arm ends
-                    if (!near.piece) continue;        // a gap does not stop it
+            for (var dy = -far; dy <= far; dy++) {
+                for (var dx = -far; dx <= far; dx++) {
+                    if (!dx && !dy) continue;
+
+                    var near = at(stick.x + dx, stick.y + dy);
+                    if (!near || !near.piece) continue;
 
                     gone[near.id] = near;
                     if (near.piece === Game.Pieces.dynamite.id && !fired[near.id]) {

@@ -73,10 +73,9 @@ Game.Config = {
         // turns a stick sits before it goes off, if nothing lights it first
         dynamiteFuse: 5,
 
-        // how far the blast runs along each of the four sides. At 2 the cross
-        // takes nine cells, the same as the old square did, without ever
-        // touching a diagonal.
-        blastReach: 2,
+        // how far the blast reaches from the stick, corners included. At 1 it
+        // takes the eight squares around it and nothing further out.
+        blastReach: 1,
 
         blastSpacing: 2,
 
