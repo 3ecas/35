@@ -26,8 +26,8 @@ Game.Config = {
             { from: 10, count: 1, every: 5 },
             { from: 15, count: 1, every: 3 },
             { from: 20, count: 2, every: 5 },
-            { from: 25, count: 2, every: 4 },
-            { from: 30, count: 3, every: 4 }
+            { from: 25, count: 2, every: 3 },
+            { from: 30, count: 3, every: 2 }
         ],
 
         // a fall never takes more than this share of the free squares, and

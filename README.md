@@ -24,7 +24,7 @@ first 35 is made. From then on the deal is the last four, 32 to 35, for the
 rest of the run. Once you make a 10 the seam starts to give way and pieces
 fall in on their own, into columns you did not pick — more of them, and more
 often, the higher you climb: one every five drops from 10, one every three from
-15, two every five from 20, two every four from 25, three every four from 30.
+15, two every five from 20, two every three from 25, three every two from 30.
 The run ends when the board is full.
 
 **The bomb — the black 0.** The dial beside the hand fills with the merges
