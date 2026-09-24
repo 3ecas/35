@@ -72,7 +72,7 @@ window.Game = window.Game || {};
         combo: function (count) {
             if (count < 2) return;
             if (!comboHost) comboHost = layer("combo");
-            comboHost.textContent = "×" + count;
+            comboHost.innerHTML = Game.Icons.number("×" + count);
             comboHost.style.setProperty("--grow", 1 + Math.min(count, 8) * 0.11);
             restart(comboHost, "is-up");
         },

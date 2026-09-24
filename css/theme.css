@@ -13,13 +13,19 @@
 
     /* Breathing room inside the safe area. Overridden per breakpoint; every
        rule reads these rather than repeating numbers, so a screen size is
-       described in one place only. */
-    --frame-top: 14px;
+       described in one place only.
 
-    /* The ladder button is fixed 20px off the bottom and is 54px tall, so the
-       frame has to be at least that or the tray lands on top of it — which is
-       exactly what happened on a 667pt screen. */
-    --frame-bottom: 82px;
+       The three buttons sit at the top left in a row of their own, above the
+       score. The foot of the screen is kept clear for a banner ad — 50pt tall
+       on a phone, up to 90pt on an iPad — with air above it, so a tap meant for
+       the bomb cannot land on the ad. */
+    --bar: 40px;
+    --bar-top: 6px;
+    --ad-space: 90px;
+    --ad-gap: 14px;
+
+    --frame-top: calc(var(--bar-top) + var(--bar) + 2px);
+    --frame-bottom: calc(var(--ad-space) + var(--ad-gap));
     --frame-side: 8px;
     --stack-gap: 10px;
 
@@ -27,13 +33,13 @@
     --stage: calc(100vh - var(--safe-top) - var(--safe-bottom));
 
     /* Vertical space the grid is NOT allowed to take: the frame top and
-       bottom, the scoreboard, the tray of hand and dials, and the gaps between
-       them. Measured rather than padded out — every pixel left here is a pixel
-       the grid cannot use, and the grid is the game. */
+       bottom, the score, the piece in hand and the bomb dial, and the gaps
+       between them. Measured rather than padded out — every pixel left here is
+       a pixel the grid cannot use, and the grid is the game. */
     --board-reserve: calc(
         var(--frame-top) + var(--frame-bottom)
-        + 64px                      /* scoreboard, and the space under it */
-        + 96px                      /* tray: hand, the two dials, its padding */
+        + 58px                      /* the score, and the best under it */
+        + 60px                      /* tray: the piece in hand and the bomb */
         + 2 * var(--stack-gap)
     );
 }
@@ -41,6 +47,9 @@
 :root {
     --bg: #eef0f3;
     --bg-deep: #e3e7ec;
+
+    /* an empty square of the grid, white over the colour behind it */
+    --cell: rgba(255, 255, 255, 0.9);
     --panel: #ffffff;
     --panel-soft: #f6f8fa;
 
@@ -56,178 +65,19 @@
     --accent-ink: #4a6b43;
     --accent-soft: #e2efdd;
 
-    --i-dirt: #b08a63;
-    --i-dirt-light: #cba888;
-    --i-dirt-deep: #8b6a47;
-
-    --i-tnt: #c2705f;
-    --i-tnt-light: #dd9585;
-    --i-tnt-deep: #9d5546;
-    --i-tnt-fuse: #8f866f;
-    --i-tnt-spark: #e2b75c;
-
-    --i-star: #ffc93f;
-    --i-star-light: #fff3b8;
-    --i-star-deep: #e09a12;
-    --i-star-halo: rgba(255, 214, 92, 0.28);
-
-    --i-rock: #b2b5af;
-    --i-rock-light: #d0d3cd;
-    --i-rock-deep: #8c8f8a;
-
-    --i-iron: #8d949d;
-    --i-iron-light: #adb4bc;
-    --i-iron-deep: #6a7078;
-
-    --i-tin: #c6ced4;
-    --i-tin-light: #e4ebef;
-    --i-tin-deep: #9aa5ad;
-
-    --i-copper: #d59468;
-    --i-copper-light: #f2bb95;
-    --i-copper-deep: #ac6d40;
-
-    --i-silver: #bcc8d4;
-    --i-silver-light: #e8eef4;
-    --i-silver-deep: #8f9dab;
-
-    --i-gold: #cf9c33;
-    --i-gold-light: #ecc470;
-    --i-gold-deep: #9a7118;
-
-    --i-topaz: #e5a95c;
-    --i-topaz-light: #f6cb96;
-    --i-topaz-deep: #bb8134;
-
-    --i-amethyst: #a98cd9;
-    --i-amethyst-light: #ccb4ef;
-    --i-amethyst-deep: #8163b3;
-
-    --i-emerald: #63bd92;
-    --i-emerald-light: #95dcba;
-    --i-emerald-deep: #43926c;
-
-    --i-ruby: #e08496;
-    --i-ruby-light: #f3b0bd;
-    --i-ruby-deep: #b45c6f;
-
-    --i-sapphire: #7ba6dc;
-    --i-sapphire-light: #a8c9f0;
-    --i-sapphire-deep: #567fb4;
-
-    --i-diamond: #bfdff0;
-    --i-diamond-light: #e9f7ff;
-    --i-diamond-deep: #93b8cd;
-
-    --i-citrine: #f2cc2e;
-    --i-citrine-light: #fbe986;
-    --i-citrine-deep: #c19c10;
-
-    --i-peridot: #a8c85a;
-    --i-peridot-light: #cbe28f;
-    --i-peridot-deep: #7a9a33;
-
-    --i-aqua: #7fd0dc;
-    --i-aqua-light: #b6ebf2;
-    --i-aqua-deep: #4a9dad;
-
-    --i-tanzanite: #8a6fd8;
-    --i-tanzanite-light: #b7a3ef;
-    --i-tanzanite-deep: #5f45a3;
-
-    --i-opal: #4c4265;
-    --i-opal-light: #6d6088;
-    --i-opal-deep: #2e2740;
-    --i-opal-fire: #3fd6c0;
-    --i-opal-glow: #f07ab8;
-    --i-opal-spark: #ffd873;
-
-    --i-alexandrite: #6fc2b0;
-    --i-alexandrite-light: #a7ded1;
-    --i-alexandrite-deep: #a9548b;
-
-    --i-paraiba: #2fd6d0;
-    --i-paraiba-light: #86f1ed;
-    --i-paraiba-deep: #159f9b;
-
-    --i-platinum: #c9bda6;
-    --i-platinum-light: #e9e1cd;
-    --i-platinum-deep: #9a8f79;
-
-    --i-rhodium: #a4b0d0;
-    --i-rhodium-light: #dee5f5;
-    --i-rhodium-deep: #71809f;
-
-    --i-coal: #4a4746;
-    --i-coal-light: #706b6a;
-    --i-coal-deep: #2a2726;
-
-    --i-zinc: #a9adc4;
-    --i-zinc-light: #d0d3e2;
-    --i-zinc-deep: #7f8399;
-
-    --i-bronze: #96793a;
-    --i-bronze-light: #bda164;
-    --i-bronze-deep: #6b5320;
-
-    --i-titanium: #7a7486;
-    --i-titanium-light: #a49eb0;
-    --i-titanium-deep: #56515f;
-
-    --i-iridium: #5a6a78;
-    --i-iridium-light: #8494a2;
-    --i-iridium-deep: #3a4652;
-
-    --i-quartz: #efb7c4;
-    --i-quartz-light: #fbdbe3;
-    --i-quartz-deep: #c98a99;
-
-    --i-turquoise: #4ec3bd;
-    --i-turquoise-light: #8ee0dc;
-    --i-turquoise-deep: #2e9691;
-
-    --i-garnet: #a33246;
-    --i-garnet-light: #c8586c;
-    --i-garnet-deep: #74202f;
-
-    --i-lapis: #35569f;
-    --i-lapis-deep: #1f3670;
-    --i-lapis-fleck: #e8c25c;
-
-    --i-tourmaline: #7cc47a;
-    --i-tourmaline-light: #a9dda6;
-    --i-tourmaline-deep: #d76a9c;
-
-    --i-jadeite: #8cc23a;
-    --i-jadeite-light: #b3dd77;
-    --i-jadeite-deep: #63912a;
-
-    --i-beryl: #cf2547;
-    --i-beryl-light: #ec6b87;
-    --i-beryl-deep: #9a1433;
-
-    --i-shine: rgba(255, 255, 255, 0.55);
-
     /* the ring around the hand and the two dials — one value, so the three
        of them always read as the same weight of line */
     --ring: 2.5px;
 
-    /* Cells and the hand slot: a share of their own size rather than a fixed
-       number, so the curve looks the same on a 38px tile and a 60px one. */
-    --radius-cell: 27%;
-
-    --radius-sm: 10px;
-    --radius: 14px;
-    --radius-lg: 20px;
-    --radius-pill: 999px;
+    /* Cells and the hand slot are squares — no curve at any size. */
+    --radius-cell: 0;
 
     --shadow-1: 0 1px 2px rgba(58, 66, 78, 0.06),
         0 4px 12px rgba(58, 66, 78, 0.07);
     --shadow-2: 0 2px 4px rgba(58, 66, 78, 0.07),
         0 12px 28px rgba(58, 66, 78, 0.1);
 
-    --font: "Nunito", "Quicksand", "Segoe UI Variable Text", "Segoe UI",
-        system-ui, -apple-system, sans-serif;
+    --font: system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 *,
@@ -259,25 +109,15 @@ body {
     font-size: 15px;
     line-height: 1.55;
     color: var(--ink);
-    /* The page is a cut through the ground: daylight at the top, topsoil under
-       it, then clay, then the rock the good things come out of. It is the
-       ladder stood on end - you are looking at where the run is going.
-
-       Kept pale and soft on purpose: hard-edged seam lines read as banding
-       rather than geology, so the layers are feathered over several percent.
-       The strata are neutral and the only colour in them comes from the
-       mineral flecks, which are the pieces' own hues. */
+    /* Pale neutral bands, light at the top and a little deeper towards the
+       bottom — seen only before the game draws the board's own colours over
+       them (js/ui/backdrop.js). */
     background: var(--bg);
     background-image:
-        /* light coming in at the surface */
+        /* light coming in at the top */
         radial-gradient(120% 44% at 50% -8%, rgba(255, 255, 255, 0.9), transparent 72%),
         radial-gradient(62% 26% at 88% 0%, rgba(255, 255, 255, 0.75), transparent 74%),
-        /* mineral flecks caught in the deeper layers */
-        radial-gradient(circle at 15% 64%, rgba(176, 138, 99, 0.1), transparent 11%),
-        radial-gradient(circle at 84% 73%, rgba(140, 146, 157, 0.09), transparent 10%),
-        radial-gradient(circle at 31% 88%, rgba(207, 156, 51, 0.08), transparent 9%),
-        radial-gradient(circle at 70% 94%, rgba(126, 138, 166, 0.08), transparent 10%),
-        /* where one layer gives way to the next, feathered so it is a hint */
+        /* where one band gives way to the next, feathered so it is a hint */
         linear-gradient(
             180deg,
             transparent 30%,
@@ -290,7 +130,7 @@ body {
             rgba(110, 116, 126, 0.05) 83%,
             transparent 88%
         ),
-        /* the strata themselves */
+        /* the bands themselves */
         linear-gradient(
             180deg,
             #ffffff 0%,
@@ -340,10 +180,6 @@ button {
     color: inherit;
 }
 
-.muted {
-    color: var(--ink-soft);
-}
-
 svg.icon {
     display: block;
     width: 1.25em;
@@ -351,9 +187,9 @@ svg.icon {
     flex: none;
     stroke: currentColor;
     fill: none;
-    stroke-width: 1.6;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+    stroke-width: 2;
+    stroke-linecap: square;
+    stroke-linejoin: miter;
 }
 
 svg.icon--art {
@@ -361,10 +197,44 @@ svg.icon--art {
     fill: none;
 }
 
+/* numbers in the tiles' block digits (Game.Icons.number): one em tall, so
+   font-size sets how big they are */
+svg.blocks {
+    display: block;
+    flex: none;
+}
+
+/* Words in the square letters (Game.Icons.words): a picture a word, one em
+   tall, laid out like a line of text — centred, and breaking between words
+   when it runs out of room. The row gap is the line spacing. */
+.words {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.6em 0.45em;
+}
+
+svg.glyphs {
+    display: block;
+    flex: none;
+}
+
+/* there for screen readers, never seen */
+.unseen {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
 :focus-visible {
     outline: 2px solid var(--accent-deep);
     outline-offset: 2px;
-    border-radius: var(--radius-sm);
 }
 
 @media (prefers-reduced-motion: reduce) {

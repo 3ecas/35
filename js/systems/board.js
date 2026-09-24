@@ -53,15 +53,9 @@ window.Game = window.Game || {};
         return moves;
     }
 
-    /* Which way two pieces count as touching. Corners make a group far easier
-       to close, so it is a switch rather than a constant. Rubble and dynamite
-       keep to the four sides — this is about merging only. */
+    // Touching means one of the four sides — for a merge, and for everything
+    // a merge sets off beside it.
     var SIDES = [[0, -1], [-1, 0], [1, 0], [0, 1]];
-    var CORNERS = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
-
-    function touching() {
-        return Game.Config.game.mergeDiagonals ? SIDES.concat(CORNERS) : SIDES;
-    }
 
     function reach(start, need) {
         var found = [start];
@@ -72,7 +66,7 @@ window.Game = window.Game || {};
         while (queue.length) {
             var cell = queue.shift();
 
-            var around = touching().map(function (step) {
+            var around = SIDES.map(function (step) {
                 return at(cell.x + step[0], cell.y + step[1]);
             });
 
@@ -110,15 +104,15 @@ window.Game = window.Game || {};
         return null;
     }
 
-    function rubbleAround(cells) {
+    /* the cells on the four sides of any of `cells` holding `pieceId`, once each */
+    function beside(cells, pieceId) {
         var hit = [];
         var seen = {};
 
         cells.forEach(function (cell) {
-            [[0, -1], [0, 1], [-1, 0], [1, 0]].forEach(function (step) {
+            SIDES.forEach(function (step) {
                 var near = at(cell.x + step[0], cell.y + step[1]);
-                if (!near || seen[near.id]) return;
-                if (near.piece !== "rubble") return;
+                if (!near || seen[near.id] || near.piece !== pieceId) return;
 
                 seen[near.id] = true;
                 hit.push(near);
@@ -128,37 +122,19 @@ window.Game = window.Game || {};
         return hit;
     }
 
-    function fuseLit(cells) {
-        var lit = [];
-        var seen = {};
-
-        cells.forEach(function (cell) {
-            [[0, -1], [0, 1], [-1, 0], [1, 0]].forEach(function (step) {
-                var near = at(cell.x + step[0], cell.y + step[1]);
-                if (!near || seen[near.id]) return;
-                if (near.piece !== Game.Pieces.dynamite.id) return;
-
-                seen[near.id] = true;
-                lit.push(near);
-            });
-        });
-
-        return lit;
-    }
-
-    function blast(sticks) {
+    function blast(bombs) {
         var gone = {};
         var fired = {};
-        var queue = sticks.slice();
+        var queue = bombs.slice();
 
         while (queue.length) {
-            var stick = queue.shift();
-            if (fired[stick.id]) continue;
-            fired[stick.id] = true;
-            gone[stick.id] = stick;
+            var bomb = queue.shift();
+            if (fired[bomb.id]) continue;
+            fired[bomb.id] = true;
+            gone[bomb.id] = bomb;
 
             // A square, not a cross: every cell within `blastReach` of the
-            // stick, corners included. At 1 that is the eight squares around
+            // bomb, corners included. At 1 that is the eight squares around
             // it and nothing further out.
             var far = Math.max(1, Game.Config.game.blastReach || 1);
 
@@ -166,11 +142,11 @@ window.Game = window.Game || {};
                 for (var dx = -far; dx <= far; dx++) {
                     if (!dx && !dy) continue;
 
-                    var near = at(stick.x + dx, stick.y + dy);
+                    var near = at(bomb.x + dx, bomb.y + dy);
                     if (!near || !near.piece) continue;
 
                     gone[near.id] = near;
-                    if (near.piece === Game.Pieces.dynamite.id && !fired[near.id]) {
+                    if (near.piece === Game.Pieces.bomb.id && !fired[near.id]) {
                         queue.push(near);
                     }
                 }
@@ -183,16 +159,15 @@ window.Game = window.Game || {};
     }
 
     /* A blast as a step: everything in reach goes, paid at its worth, and
-       every star caught in it owes the board a sweep — the player names a
-       piece and every one of them goes. A blast is the only thing that sets
-       a star off. */
+       every infinity caught in it owes the board a sweep — the player names a
+       number and every one of them goes. */
     function wreck(lit) {
-        var star = Game.Pieces.lodestone.id;
+        var infinity = Game.Pieces.infinity.id;
         var salvage = 0;
         var gone = blast(lit).map(function (cell) {
             var was = Game.Pieces.byId(cell.piece);
             salvage += (was && was.points) || 0;
-            if (cell.piece === star) owed += 1;
+            if (cell.piece === infinity) owed += 1;
             cell.piece = null;
             cell.fuse = 0;
             return cell.id;
@@ -206,41 +181,23 @@ window.Game = window.Game || {};
         };
     }
 
-    function fullLine() {
-        var settings = Game.Config.game;
-        var x, y, line, full;
+    /* Infinity beside a merge goes off: it leaves the board, and the board is
+       owed a sweep, the same as when a blast catches it. */
+    function touchOff(cells) {
+        var hit = beside(cells, Game.Pieces.infinity.id);
+        if (!hit.length) return null;
 
-        if (settings.clearColumns) {
-            for (x = 0; x < cols; x++) {
-                line = [];
-                full = true;
-                for (y = 0; y < rows; y++) {
-                    var down = at(x, y);
-
-                    if (!down.piece || down.piece === "rubble") {
-                        full = false;
-                        break;
-                    }
-                    line.push(down);
-                }
-                if (full) return line;
-            }
-        }
-
-        if (settings.clearRows) {
-            for (y = 0; y < rows; y++) {
-                line = [];
-                full = true;
-                for (x = 0; x < cols; x++) {
-                    var across = at(x, y);
-                    if (!across.piece) { full = false; break; }
-                    line.push(across);
-                }
-                if (full) return line;
-            }
-        }
-
-        return null;
+        owed += hit.length;
+        return {
+            type: "clear",
+            cells: hit.map(function (cell) {
+                cell.piece = null;
+                cell.fuse = 0;
+                return cell.id;
+            }),
+            points: 0,
+            board: snapshot()
+        };
     }
 
     var owed = 0;
@@ -257,79 +214,59 @@ window.Game = window.Game || {};
 
         while (guard++ < 200) {
             var pair = nextGroup();
+            if (!pair) break;
 
-            if (pair) {
-                chain++;
+            chain++;
 
-                var lit = snapshot();
-                var fuse = pair.eat
-                    .slice()
-                    .reverse()
-                    .map(function (cell) {
-                        return cell.id;
-                    });
+            var lit = snapshot();
+            var fuse = pair.eat
+                .slice()
+                .reverse()
+                .map(function (cell) {
+                    return cell.id;
+                });
 
-                var over = Game.Config.game;
-                var times = Math.min(
-                    over.chainMost,
-                    1 + (chain - 1) * over.chainStep
+            var over = Game.Config.game;
+            var times = Math.min(
+                over.chainMost,
+                1 + (chain - 1) * over.chainStep
+            );
+
+            var sparked;
+
+            if (!pair.piece.next) {
+                var haul = Math.round(
+                    (pair.piece.points || 0) *
+                        pair.eat.length *
+                        over.cashBonus *
+                        times
                 );
 
-                if (!pair.piece.next) {
-                    var haul = Math.round(
-                        (pair.piece.points || 0) *
-                            pair.eat.length *
-                            over.cashBonus *
-                            times
-                    );
+                pair.eat.forEach(function (cell) {
+                    cell.piece = null;
+                });
 
-                    pair.eat.forEach(function (cell) {
-                        cell.piece = null;
-                    });
+                steps.push({
+                    type: "cash",
+                    cells: [pair.keep.id],
+                    piece: pair.piece.id,
+                    took: pair.eat.length,
+                    fuse: fuse,
+                    lit: lit,
+                    chain: chain,
+                    times: times,
+                    points: haul,
+                    board: snapshot()
+                });
 
-                    var scarred = rubbleAround(pair.eat);
-                    scarred.forEach(function (cell) {
-                        cell.piece = null;
-                    });
-
-                    if (over.cashLeaves) {
-                        pair.keep.piece = Game.Pieces.rubble.id;
-                    }
-
-                    steps.push({
-                        type: "cash",
-                        cells: [pair.keep.id],
-                        piece: pair.piece.id,
-                        took: pair.eat.length,
-                        fuse: fuse,
-                        lit: lit,
-                        spent: over.cashLeaves,
-                        chain: chain,
-                        times: times,
-                        points: haul,
-                        board: snapshot()
-                    });
-
-                    var settled = fall();
-                    if (settled.length) {
-                        steps.push({
-                            type: "fall",
-                            moves: settled,
-                            board: snapshot()
-                        });
-                    }
-                    continue;
-                }
-
+                sparked = touchOff(pair.eat);
+                if (sparked) steps.push(sparked);
+            } else {
                 var grown = Game.Pieces.byId(pair.piece.next);
 
                 var makes = 1;
                 if (over.surplusStays) {
-                    var need = over.mergeAt || 3;
-                    makes = Math.max(1, pair.eat.length - (need - 1));
-                    if (over.surplusMost > 0) {
-                        makes = Math.min(makes, over.surplusMost);
-                    }
+                    makes = Math.max(1, pair.eat.length - ((over.mergeAt || 3) - 1));
                 }
 
                 pair.eat.forEach(function (cell, i) {
@@ -356,41 +293,11 @@ window.Game = window.Game || {};
                     board: snapshot()
                 });
 
-                if (Game.Config.game.rubbleBreaks) {
-                    var broken = rubbleAround(pair.eat);
-                    if (broken.length) {
-                        steps.push({
-                            type: "clear",
-                            cells: broken.map(function (cell) {
-                                cell.piece = null;
-                                return cell.id;
-                            }),
-                            points: 0,
-                            board: snapshot()
-                        });
-                    }
-                }
+                sparked = touchOff(pair.eat);
+                if (sparked) steps.push(sparked);
 
-                var lit = fuseLit(pair.eat);
-                if (lit.length) steps.push(wreck(lit));
-            } else {
-                var line = fullLine();
-                if (!line) break;
-
-                var worth = 0;
-                var ids = line.map(function (cell) {
-                    var piece = Game.Pieces.byId(cell.piece);
-                    worth += (piece && piece.points) || 0;
-                    cell.piece = null;
-                    return cell.id;
-                });
-
-                steps.push({
-                    type: "clear",
-                    cells: ids,
-                    points: Math.round(worth * Game.Config.game.clearBonus),
-                    board: snapshot()
-                });
+                var bombs = beside(pair.eat, Game.Pieces.bomb.id);
+                if (bombs.length) steps.push(wreck(bombs));
             }
 
             var after = fall();
@@ -414,7 +321,7 @@ window.Game = window.Game || {};
         return { steps: steps, made: made, points: points };
     }
 
-    /* sticks going off outside a merge: the blast, then the board settles */
+    /* bombs going off outside a merge: the blast, then the board settles */
     function setOff(lit) {
         return report(resolve([wreck(lit)]));
     }
@@ -445,20 +352,6 @@ window.Game = window.Game || {};
             return this.empties().length === 0;
         },
 
-        density: function () {
-            return 1 - this.empties().length / cells.length;
-        },
-
-        highest: function () {
-            var best = null;
-            cells.forEach(function (cell) {
-                if (!cell.piece) return;
-                var piece = Game.Pieces.byId(cell.piece);
-                if (!best || piece.tier > best.tier) best = piece;
-            });
-            return best;
-        },
-
         landing: function (column) {
             if (column < 0 || column >= cols) return null;
             for (var y = rows - 1; y >= 0; y--) {
@@ -487,7 +380,13 @@ window.Game = window.Game || {};
             return cells;
         },
 
+        // Sweeps still to be named. A board with nothing left on it has nothing
+        // to name, so a debt that finds it empty is dropped rather than left to
+        // wait on a tap that can never come.
         owes: function () {
+            if (owed > 0 && !cells.some(function (cell) { return cell.piece; })) {
+                owed = 0;
+            }
             return owed;
         },
 
@@ -524,14 +423,14 @@ window.Game = window.Game || {};
         },
 
         burn: function () {
-            var limit = Game.Config.game.dynamiteFuse || 0;
+            var limit = Game.Config.game.bombFuse || 0;
             if (!limit) return null;
 
-            var stick = Game.Pieces.dynamite.id;
+            var bomb = Game.Pieces.bomb.id;
             var lit = [];
 
             cells.forEach(function (cell) {
-                if (cell.piece !== stick) return;
+                if (cell.piece !== bomb) return;
                 cell.fuse = (cell.fuse || 0) + 1;
                 if (cell.fuse >= limit) lit.push(cell);
             });
@@ -539,21 +438,21 @@ window.Game = window.Game || {};
             return lit.length ? setOff(lit) : null;
         },
 
-        // Every stick on the board at once, fuse or no fuse. A full board
+        // Every bomb on the board at once, fuse or no fuse. A full board
         // does this before it ends the run.
         detonate: function () {
-            var stick = Game.Pieces.dynamite.id;
+            var bomb = Game.Pieces.bomb.id;
             var lit = cells.filter(function (cell) {
-                return cell.piece === stick;
+                return cell.piece === bomb;
             });
 
             return lit.length ? setOff(lit) : null;
         },
 
         fuseAt: function (id) {
-            var limit = Game.Config.game.dynamiteFuse || 0;
+            var limit = Game.Config.game.bombFuse || 0;
             var cell = cells[id];
-            if (!limit || !cell || cell.piece !== Game.Pieces.dynamite.id) return 0;
+            if (!limit || !cell || cell.piece !== Game.Pieces.bomb.id) return 0;
             return Math.min(1, (cell.fuse || 0) / limit);
         },
 
@@ -598,10 +497,6 @@ window.Game = window.Game || {};
             return true;
         },
 
-        settle: function () {
-            return report(resolve([]));
-        },
-
         drop: function (column, pieceId) {
             var spot = this.landing(column);
             if (!spot) return null;
@@ -620,23 +515,6 @@ window.Game = window.Game || {};
             var out = report(resolve(steps));
             out.cell = spot;
             return out;
-        },
-
-        growUpTo: function (tier) {
-            var grown = 0;
-
-            cells.forEach(function (cell) {
-                if (!cell.piece) return;
-                var piece = Game.Pieces.byId(cell.piece);
-
-                while (piece && piece.tier < tier && piece.next) {
-                    cell.piece = piece.next;
-                    piece = Game.Pieces.byId(piece.next);
-                    grown++;
-                }
-            });
-
-            return grown;
         }
     };
 })();

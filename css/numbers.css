@@ -1,0 +1,189 @@
+/* The numbers.
+
+   Every piece is a flat square in one colour with its number on it in white.
+   The colours walk the spectrum up the ladder — green, emerald, teal, blue,
+   violet, plum, wine — and get darker as they go, so the start of a run looks
+   as easy as it plays and the top of the ladder looks as hard as it is. Even
+   the first green is deep enough to carry a white number. The last rung has no
+   colour of its own: 35 is all of them, round the clock.
+
+   The bomb is the black 0 and infinity the white square with a dark sign —
+   the bomb turned inside out; neither is on the ladder. The numbers and the
+   sign are drawn in js/ui/icons.js. */
+
+:root {
+    --bomb: #2d2a2e;
+
+    /* The background blends the colours of the numbers on the board
+       (js/ui/backdrop.js). These are the tiles lifted towards white, so the
+       room follows the run without ever turning dark itself. */
+    --i-n1: #9be4aa;
+    --i-n2: #90e4b2;
+    --i-n3: #86e3ba;
+    --i-n4: #7ce2c2;
+    --i-n5: #74e0ca;
+    --i-n6: #6eded1;
+    --i-n7: #6adcd8;
+    --i-n8: #67d9df;
+    --i-n9: #68d6e4;
+    --i-n10: #6ad2e9;
+    --i-n11: #6eceed;
+    --i-n12: #73caf1;
+    --i-n13: #79c6f3;
+    --i-n14: #80c2f5;
+    --i-n15: #87bdf5;
+    --i-n16: #8eb9f5;
+    --i-n17: #95b4f3;
+    --i-n18: #9cb0f1;
+    --i-n19: #a3abed;
+    --i-n20: #a9a7e9;
+    --i-n21: #afa3e4;
+    --i-n22: #b49fde;
+    --i-n23: #b99bd8;
+    --i-n24: #bd97d1;
+    --i-n25: #c093c9;
+    --i-n26: #c390c1;
+    --i-n27: #c68db8;
+    --i-n28: #c78ab0;
+    --i-n29: #c888a7;
+    --i-n30: #c9869e;
+    --i-n31: #c88495;
+    --i-n32: #c8838c;
+    --i-n33: #c68283;
+    --i-n34: #c4817b;
+    --i-n35: #d7b2ea;
+}
+
+.num-0 { --num: var(--bomb); }
+.num-1 { --num: #4bbc6b; }
+.num-2 { --num: #2cbb77; }
+.num-3 { --num: #00b884; }
+.num-4 { --num: #00b38f; }
+.num-5 { --num: #00af97; }
+.num-6 { --num: #00aa9d; }
+.num-7 { --num: #00a5a3; }
+.num-8 { --num: #00a0a7; }
+.num-9 { --num: #009cab; }
+.num-10 { --num: #0097af; }
+.num-11 { --num: #0092b3; }
+.num-12 { --num: #008cb7; }
+.num-13 { --num: #0087bc; }
+.num-14 { --num: #0080c4; }
+.num-15 { --num: #2479c4; }
+.num-16 { --num: #3772c2; }
+.num-17 { --num: #456bbf; }
+.num-18 { --num: #5064bb; }
+.num-19 { --num: #595db5; }
+.num-20 { --num: #6057ae; }
+.num-21 { --num: #6650a7; }
+.num-22 { --num: #6b4a9e; }
+.num-23 { --num: #6f4495; }
+.num-24 { --num: #723e8b; }
+.num-25 { --num: #743880; }
+.num-26 { --num: #763375; }
+.num-27 { --num: #772d69; }
+.num-28 { --num: #77285e; }
+.num-29 { --num: #762452; }
+.num-30 { --num: #741f46; }
+.num-31 { --num: #721b3a; }
+.num-32 { --num: #70172e; }
+.num-33 { --num: #6c1422; }
+.num-34 { --num: #691214; }
+
+.num-35 {
+    --num: conic-gradient(
+        #df676b 0deg, #d97230 30deg, #bd8700 60deg, #989900 90deg,
+        #5ba84a 120deg, #00ab86 150deg, #00a6ad 180deg, #00a0d3 210deg,
+        #5991ed 240deg, #927fe7 270deg, #ba71cb 300deg, #d4679f 330deg,
+        #df676b 360deg
+    );
+}
+
+.num-inf { --num: #ffffff; }
+
+/* ---- on the board ---------------------------------------------------------
+
+   The square the piece sits in stays an empty socket and the colour belongs
+   to the art inside it, because the art is what falls. Paint the socket and
+   the colour would arrive at the bottom of the column before the number did. */
+.tile--full.num {
+    background: var(--cell);
+    box-shadow: none;
+}
+
+.tile.num .tile__art {
+    width: 100%;
+    height: 100%;
+    background: var(--num);
+}
+
+/* the tap that picks a column still shows on the pieces already in it */
+.tile.num.is-column .tile__art {
+    box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+/* Rings round a piece are drawn in ink rather than the accent green: the
+   first rungs are green themselves, and a green ring round a green tile is
+   gone. The one that matters most is naming a number for infinity — every
+   piece on the board rings, and that ring is the only thing asking for a tap. */
+.tile.num.is-pickable {
+    box-shadow: 0 0 0 2px var(--ink);
+}
+
+.tile.num.is-pickable:hover {
+    box-shadow: 0 0 0 3px var(--ink);
+}
+
+.slot.num.is-picked {
+    box-shadow: 0 0 0 2px var(--ink);
+}
+
+/* infinity breathes, so it reads as something to set off, not something to build */
+.tile.num-inf .tile__art svg {
+    animation: infinity-breathe 2.4s ease-in-out infinite;
+}
+
+@keyframes infinity-breathe {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(0.86);
+    }
+}
+
+/* ---- everywhere else a piece is shown ------------------------------------ */
+.slot.num,
+.how__cell.num {
+    background: var(--num);
+}
+
+.slot.num svg.icon,
+.how__cell.num svg.icon {
+    width: 100%;
+    height: 100%;
+}
+
+/* the chip riding along with the points is a piece in miniature */
+.float.num svg.icon {
+    width: 1.6em;
+    height: 1.6em;
+    background: var(--num);
+}
+
+/* The dial carries the 0 itself, large enough to read at a glance: dark
+   while the dial is filling on its light face, white once it is full and
+   has turned black. */
+.dial--bomb .dial__mark svg.icon {
+    width: 34px;
+    height: 34px;
+}
+
+.dial--bomb .dial__mark path {
+    fill: var(--ink);
+}
+
+.dial--bomb.is-ready .dial__mark path {
+    fill: #fff;
+}

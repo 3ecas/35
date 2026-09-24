@@ -13,54 +13,91 @@
     justify-content: center;
     gap: var(--stack-gap);
     padding:
-        calc(var(--frame-top) + var(--safe-top))
+        var(--safe-top)
         calc(var(--frame-side) + var(--safe-right))
         calc(var(--frame-bottom) + var(--safe-bottom))
         calc(var(--frame-side) + var(--safe-left));
 }
 
-/* The scoreboard grows into the empty band above the board and centres the
-   number in it. This spacer takes the same share below the hand, so the board
-   itself stays exactly where it was. The negative margin cancels the flex gap
-   the spacer would otherwise add. */
-.table::after {
-    content: "";
-    flex: 1 0 auto;
-    margin-top: calc(-1 * var(--stack-gap));
-}
+/* The grid with what belongs to it — the score above, the piece in hand and
+   the bomb below — in one column exactly as wide as the grid, running from
+   the top of the screen down to the space kept for the ad. Whatever height
+   the grid does not use is shared out evenly above and below it, which
+   holds it just off the middle of the screen. */
+.stage {
+    --gap: 7px;
+    --pad: 6px;
 
-.scoreboard {
-    z-index: 20;
     flex: 1 0 auto;
     display: flex;
     flex-direction: column;
+    gap: var(--stack-gap);
+}
+
+/* the share below: after the tray, with no gap of its own */
+.stage::after {
+    content: "";
+    flex: 1 0 0;
+    margin-top: calc(-1 * var(--stack-gap));
+}
+
+/* The score, and the best small under it, in white — centred across the
+   screen, and halfway down from the top of the screen to the first row of
+   the grid. The scoreboard is that whole stretch: it takes the room above
+   the grid (the buttons' row included) and centres the two numbers in it,
+   with the gap and the grid's padding under it added back on top so the
+   middle is the middle of what the eye sees. It never climbs in among the
+   buttons: on a screen too short for that it sits just under them. */
+.scoreboard {
+    position: relative;
+    z-index: 20;
+    flex: 1 0 calc(var(--frame-top) + 58px);
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 1px;
-    min-height: 52px;
-    margin-bottom: 6px;
+    padding-top: calc(var(--stack-gap) + var(--pad));
     pointer-events: none;
 }
 
+.scoreboard::before,
+.scoreboard::after {
+    content: "";
+    flex: 1 0 0;
+}
+
+.scoreboard::before {
+    min-height: calc(var(--bar-top) + var(--bar) + 4px - var(--stack-gap) - var(--pad));
+}
+
+/* as big as 2.1rem, and never wider than the screen: past 35 there is no
+   ceiling on the score */
 .scoreboard__value {
-    font-size: 2.5rem;
-    font-weight: 800;
-    line-height: 1;
-    letter-spacing: -0.03em;
-    font-variant-numeric: tabular-nums;
-    color: var(--ink);
+    display: flex;
+    align-items: center;
+    min-height: 2.1rem;
+    font-size: min(2.1rem, calc((100vw - 32px) / var(--wide, 1)));
+    color: #fff;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.18));
 }
 
 .scoreboard__value.is-up {
     animation: score-up 0.44s cubic-bezier(0.2, 1.5, 0.4, 1);
 }
 
+/* the best: no label — the small number under the score is the one to beat;
+   until there is one, the score is centred on its own */
 .scoreboard__best {
-    font-size: 0.7rem;
-    font-weight: 800;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
+    display: flex;
+    margin-top: 6px;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.scoreboard__best:empty {
+    display: none;
+}
+
+.scoreboard__best svg.blocks {
+    font-size: 0.9rem;
 }
 
 @keyframes score-up {
@@ -69,158 +106,102 @@
     }
     35% {
         transform: scale(var(--pop, 1.2));
-        color: var(--accent-deep);
     }
     100% {
         transform: scale(1);
     }
 }
 
-.back {
+/* ---- the three buttons at the foot of the screen ---------------------------
+   How to play, sound, start over, centred just above the space kept for an
+   ad. Square like everything else on the board, and no chrome until a finger
+   is on one. */
+
+.tools {
     position: fixed;
-    top: calc(18px + var(--safe-top));
-    left: calc(18px + var(--safe-left));
+    top: calc(var(--bar-top) + var(--safe-top));
+    left: calc(var(--frame-side) + var(--safe-left));
     z-index: 30;
-    display: none;
-    place-items: center;
-    width: 34px;
-    height: 34px;
-    padding: 0;
-    border: 0;
-    border-radius: 11px;
-    background: transparent;
-    color: var(--ink-soft, #9a8f83);
-    cursor: pointer;
-    opacity: 0.4;
-    transition: opacity 0.16s ease, background 0.16s ease;
-}
-
-.back.is-on {
-    display: grid;
-}
-
-.back:hover,
-.back:focus-visible {
-    background: rgba(255, 255, 255, 0.6);
-    opacity: 1;
-}
-
-.back svg {
-    width: 20px;
-    height: 20px;
-}
-
-.rungs {
-    position: fixed;
-    left: 50%;
-    bottom: calc(20px + var(--safe-bottom));
-    z-index: 30;
-    display: grid;
-    place-items: center;
-    width: 54px;
-    height: 54px;
-    transform: translateX(-50%);
-    padding: 0;
-    border: 0;
-    background: none;
-    color: var(--ink-soft);
-    opacity: 0.55;
-    cursor: pointer;
-    transition: transform 0.18s ease, color 0.18s ease, opacity 0.18s ease;
-}
-
-.rungs:hover,
-.rungs:focus-visible {
-    opacity: 1;
-}
-
-.rungs:hover { color: var(--ink); transform: translateX(-50%) translateY(-1px); }
-.rungs:active { transform: translateX(-50%) scale(0.96); }
-.rungs svg.icon { width: 28px; height: 28px; }
-
-.sheet {
-    position: fixed;
-    inset: 0;
-    z-index: 45;
-    display: none;
-    place-items: center;
-    padding: 24px 20px;
-    background: rgba(238, 240, 243, 0.9);
-    backdrop-filter: blur(3px);
-}
-
-.sheet.is-open {
-    display: grid;
-    animation: over-in 0.22s ease;
-}
-
-.sheet__card {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: min(340px, 100%);
-    max-height: min(560px, 78vh);
-    padding: 16px 12px 12px;
+    gap: 4px;
 }
 
-.sheet__title {
-    padding: 0 10px;
-    font-size: 0.78rem;
-    font-weight: 800;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
-}
-
-.menu {
-    position: fixed;
-    inset: 0;
-    z-index: 50;
-    display: none;
+.tool {
+    position: relative;
+    display: grid;
     place-items: center;
-    padding: 20px;
-
-    /* the same ground the game is dug out of, lit from the top */
-    background:
-        radial-gradient(110% 44% at 50% -4%, #ffffff 0%, rgba(255, 255, 255, 0) 66%),
-        radial-gradient(70% 34% at 14% 104%, rgba(207, 156, 51, 0.13) 0%, rgba(207, 156, 51, 0) 72%),
-        radial-gradient(70% 34% at 86% 100%, rgba(112, 128, 156, 0.14) 0%, rgba(112, 128, 156, 0) 72%),
-        linear-gradient(
-            180deg,
-            #ffffff 0%,
-            #f4f6f8 30%,
-            #e7eaef 56%,
-            #dce0e6 78%,
-            #cdd2d9 100%
-        );
-}
-
-/* ---- how to play ------------------------------------------------------- */
-
-/* the ! sits under the menu, quiet until you want it */
-.how__ask {
-    width: 26px;
-    height: 26px;
-    margin-top: 18px;
+    width: var(--bar);
+    height: var(--bar);
     padding: 0;
     border: 0;
-    border-radius: 50%;
-    font: inherit;
-    font-size: 0.86rem;
-    font-weight: 800;
-    line-height: 1;
-    color: var(--ink-faint);
-    background: rgba(255, 255, 255, 0.6);
+    background: transparent;
+    color: #fff;
     cursor: pointer;
-    transition: color 0.16s ease, background 0.16s ease, transform 0.16s ease;
+    transition: color 0.16s ease, background 0.16s ease, transform 0.14s ease;
 }
 
-.how__ask:hover,
-.how__ask:focus-visible {
+.tool svg.icon {
+    width: 24px;
+    height: 24px;
+}
+
+.tool:hover,
+.tool:focus-visible {
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.tool:active {
+    transform: scale(0.94);
+}
+
+/* sound off: the crossed-out speaker, a shade quieter */
+.tool.is-off {
+    color: rgba(255, 255, 255, 0.55);
+}
+
+/* start over, armed by a first tap: turned to white, turning back once, and
+   saying under it what the next tap will do (js/ui/roundview.js) */
+.tool.is-armed {
     color: var(--ink);
     background: #fff;
-    transform: translateY(-1px);
 }
+
+.tool.is-armed svg.icon {
+    animation: tool-turn 0.5s ease-out;
+}
+
+.tool__say {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    display: none;
+    flex-wrap: nowrap;
+    padding: 6px 8px;
+    background: #fff;
+    color: var(--ink);
+    font-size: 0.62rem;
+    pointer-events: none;
+}
+
+.tool.is-armed .tool__say {
+    display: flex;
+}
+
+@keyframes tool-turn {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(-360deg);
+    }
+}
+
+/* ---- how to play ------------------------------------------------------------
+   One idea a page, played out on a little white grid of the game's own pieces
+   over the game dimmed behind it. White on the dark, square like the rest —
+   the words too. The game behind is dimmed but not blurred: a blur rounds
+   off every square it covers. */
 
 .how {
     position: fixed;
@@ -228,10 +209,11 @@
     z-index: 60;
     display: none;
     place-items: center;
-    padding: 20px;
-    background: rgba(38, 34, 28, 0.34);
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
+    padding: calc(var(--bar) + var(--bar-top) + var(--safe-top) + 8px) 20px
+             calc(24px + var(--safe-bottom));
+    background: rgba(22, 26, 34, 0.88);
+    color: #fff;
+    cursor: pointer;
 }
 
 .how.is-open {
@@ -239,52 +221,42 @@
     animation: over-in 0.22s ease;
 }
 
+/* the cross, where the buttons sit in the game: top left */
+.how__shut {
+    position: fixed;
+    top: calc(var(--bar-top) + var(--safe-top));
+    left: calc(var(--frame-side) + var(--safe-left));
+    display: grid;
+    place-items: center;
+    width: var(--bar);
+    height: var(--bar);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+}
+
+.how__shut svg.icon {
+    width: 24px;
+    height: 24px;
+}
+
 .how__card {
-    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 14px;
     width: min(330px, 100%);
-    padding: 18px 20px 16px;
-    border-radius: var(--radius-lg);
-    background: var(--panel);
-    box-shadow: var(--shadow-2, 0 18px 40px rgba(0, 0, 0, 0.18));
     text-align: center;
 }
 
-.how__shut {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 28px;
-    height: 28px;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
-    font-size: 1.15rem;
-    line-height: 1;
-    color: var(--ink-faint);
-    background: none;
-    cursor: pointer;
-    transition: color 0.16s ease, background 0.16s ease;
-}
-
-.how__shut:hover,
-.how__shut:focus-visible {
-    color: var(--ink);
-    background: var(--panel-soft);
-}
-
-/* the little board each mechanic is played out on */
+/* the little grid each idea is played out on */
 .how__stage {
     display: grid;
     grid-template-columns: repeat(var(--how-cols, 5), 1fr);
     gap: 5px;
     width: 100%;
-    padding: 9px;
-    border-radius: var(--radius-sm);
-    background: var(--panel-soft);
-    cursor: pointer;
 }
 
 .how__cell {
@@ -292,330 +264,76 @@
     display: grid;
     place-items: center;
     aspect-ratio: 1;
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.42);
-    transition: background 0.18s ease, transform 0.18s ease, opacity 0.18s ease;
-}
-
-.how__cell.is-full {
-    background: #fff;
+    background: var(--cell);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
 .how__cell svg.icon {
-    width: 78%;
-    height: 78%;
-}
-
-/* a piece on its way in */
-.how__cell.is-lit {
-    background: #fff;
-    transform: scale(1.06);
-    box-shadow: 0 0 0 2px var(--accent-deep);
-}
-
-/* a piece on its way out */
-.how__cell.is-going {
-    background: var(--accent, #dfe8d8);
-    transform: scale(0.82);
-    opacity: 0.45;
-}
-
-.how__title {
-    margin: 14px 0 0;
-    font-size: 1.02rem;
-    font-weight: 800;
-    letter-spacing: -0.01em;
-    color: var(--ink);
-}
-
-.how__line {
-    margin: 5px 0 0;
-    font-size: 0.84rem;
-    line-height: 1.45;
-    color: var(--ink-faint);
-}
-
-.how__dots {
-    display: flex;
-    gap: 7px;
-    margin-top: 15px;
-}
-
-.how__dot {
-    width: 7px;
-    height: 7px;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
-    background: var(--ink-faint);
-    opacity: 0.28;
-    cursor: pointer;
-    transition: opacity 0.18s ease, transform 0.18s ease;
-}
-
-.how__dot:hover {
-    opacity: 0.6;
-}
-
-.how__dot.is-here {
-    opacity: 1;
-    transform: scale(1.25);
-}
-
-.menu.is-open {
-    display: grid;
-    animation: over-in 0.25s ease;
-}
-
-.menu__inner {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    width: min(300px, 100%);
-    text-align: center;
-}
-
-.menu__mark {
-    margin: 0;
-    font-size: 2.6rem;
-    font-weight: 800;
-    line-height: 1.02;
-    letter-spacing: -0.03em;
-    color: var(--ink);
-    text-align: center;
-    text-wrap: balance;
-}
-
-/* a seam of the ladder: where a run starts, what it passes, what it is for */
-.seam {
-    display: flex;
-    align-items: center;
-    gap: 0;
-    margin: 12px 0 2px;
-    padding: 7px 11px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.5);
-}
-
-/* Unfound rungs are greyed rather than hidden, so the strip reads as art on a
-   first run instead of five blanks - and fills in with colour as you turn each
-   one up. */
-.seam__bit {
-    display: grid;
-    place-items: center;
-    width: 27px;
-    height: 27px;
-    opacity: 0.55;
-    filter: grayscale(1) contrast(0.85);
-    transition: opacity 0.25s ease, filter 0.25s ease;
-}
-
-.seam__bit.is-found {
-    opacity: 1;
-    filter: none;
-}
-
-.seam__bit svg.icon {
     width: 100%;
     height: 100%;
 }
 
-.seam__gap {
-    width: 14px;
-    height: 2px;
-    border-radius: 2px;
-    background: currentColor;
-    opacity: 0.16;
+/* a piece arriving, or being tapped */
+.how__cell.is-lit {
+    transform: scale(1.06);
+    box-shadow: 0 0 0 2px #fff, 0 0 0 5px rgba(255, 255, 255, 0.3);
 }
 
-/* Four ways in, each in a hairline ring. The ring is the only chrome they get
-   — no fill, no shadow — so the icon inside is what the eye lands on. */
-.keys {
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-    margin-top: 26px;
+/* a piece about to go */
+.how__cell.is-going {
+    box-shadow: 0 0 0 2px #fff;
+    transform: scale(0.94);
 }
 
-.key {
-    display: grid;
-    place-items: center;
-    width: 66px;
-    height: 66px;
-    padding: 0;
-    border: var(--ring) solid var(--line-strong);
-    border-radius: 50%;
-    background: transparent;
-    color: var(--ink);
-    cursor: pointer;
-    transition: color 0.18s ease, border-color 0.18s ease,
-        background 0.18s ease, transform 0.14s ease;
+.how__title {
+    margin: 8px 0 0;
+    font-size: 1.4rem;
+    color: #fff;
 }
 
-.key svg.icon {
-    width: 30px;
-    height: 30px;
-    stroke-width: 1.4;
-}
-
-.key:hover {
-    border-color: var(--accent-deep);
-    background: var(--panel);
-    transform: translateY(-2px);
-}
-
-.key:active { transform: translateY(0); }
-
-.key[disabled] {
-    opacity: 0.3;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.key[disabled]:hover {
-    border-color: var(--line-strong);
-    background: transparent;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .key, .key:hover { transition: none; transform: none; }
-}
-
-.menu__best {
-    margin-bottom: 8px;
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: var(--ink-faint);
-}
-
-.menu__list {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 14px;
-    margin-top: 6px;
-}
-
-.word {
-    padding: 2px 4px;
-    border: 0;
-    background: none;
-    font: inherit;
-    font-size: 1.05rem;
-    font-weight: 800;
-    letter-spacing: -0.01em;
-    color: var(--ink);
-    cursor: pointer;
-    transition: color 0.16s ease, transform 0.16s ease;
-}
-
-.word:hover,
-.word:focus-visible {
-    color: var(--accent-ink, #4a6b45);
-    transform: translateY(-1px);
-}
-
-/* With a run in progress this button starts a fresh one and the old one is
-   gone for good, so it says so. It used to be a bare play triangle sitting
-   directly under Continue - the one glyph on the screen that reads as "resume"
-   - and pressing it threw the run away without a word. */
-.word--fresh {
-    font-size: 0.82rem;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
-}
-
-.word--quiet {
-    display: grid;
-    place-items: center;
-    margin-top: 2px;
-    color: var(--ink-faint);
-    opacity: 0.75;
-}
-
-.word--quiet svg {
-    width: 22px;
-    height: 22px;
-}
-
-.track {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+/* room for two lines, so the card holds still from page to page */
+.how__line {
+    min-height: 2.6em;
     margin: 0;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.how__steps {
+    display: flex;
+    gap: 7px;
+}
+
+.how__step {
+    width: 8px;
+    height: 8px;
     padding: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-    list-style: none;
+    border: 0;
+    background: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: background 0.18s ease, transform 0.18s ease;
 }
 
-.step {
-    display: grid;
-    grid-template-columns: 44px 1fr auto;
-    align-items: center;
-    gap: 12px;
-    padding: 5px 10px;
-    border-radius: var(--radius-sm);
-    opacity: 0.34;
-    filter: grayscale(0.85);
-    transition: opacity 0.35s ease, filter 0.35s ease, background 0.2s ease;
+.how__step.is-here {
+    background: #fff;
+    transform: scale(1.25);
 }
 
-.step.is-known {
-    opacity: 1;
-    filter: none;
+.how__next {
+    margin-top: 4px;
+    padding: 12px 30px;
+    border: 2px solid #fff;
+    background: transparent;
+    color: #fff;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.16s ease, color 0.16s ease;
 }
 
-.step.is-dealing {
-    opacity: 1;
-    filter: none;
-    background: var(--panel-soft);
-}
-
-.step.is-past {
-    opacity: 0.5;
-    filter: grayscale(1);
-}
-
-.step.is-past .step__name,
-.step.is-past .step__worth {
-    color: var(--ink-faint);
-    text-decoration: line-through;
-    text-decoration-thickness: 1.5px;
-}
-
-.step.is-dealing .step__bit {
-    box-shadow: 0 0 0 2px var(--accent-deep);
-}
-
-.step__bit {
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border-radius: var(--radius-sm);
-}
-
-.step__bit svg.icon {
-    width: 82%;
-    height: 82%;
-}
-
-.step__name {
-    font-size: 0.86rem;
-    font-weight: 800;
+.how__next:hover,
+.how__next:active {
+    background: #fff;
     color: var(--ink);
-}
-
-.step__worth {
-    font-size: 0.78rem;
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-    color: var(--ink-faint);
 }
 
 .tile.is-pickable {
@@ -649,8 +367,6 @@
 .board {
     --cols: 6;
     --rows: 6;
-    --gap: 7px;
-    --pad: 6px;
 
     /* What is actually left for tiles once the frame, the board's own padding
        and the gaps between cells are taken out — across, and down. */
@@ -705,8 +421,8 @@
 
 .tile--empty {
     cursor: pointer;
-    background: var(--bg-deep);
-    box-shadow: inset 0 0 0 1px var(--line);
+    background: var(--cell);
+    box-shadow: none;
 }
 
 .tile--full {
@@ -747,40 +463,6 @@
 .tile.is-made {
     animation: tile-made 0.32s cubic-bezier(0.28, 1.9, 0.5, 1);
     z-index: 2;
-}
-
-.tile.is-fused {
-    animation: fused 0.16s ease-out;
-    z-index: 3;
-}
-
-.tile.is-fused .tile__art {
-    animation: fused-art 0.16s ease-in forwards;
-}
-
-@keyframes fused {
-    0% {
-        box-shadow: 0 0 0 0 var(--accent);
-    }
-    45% {
-        box-shadow: 0 0 14px 4px var(--accent);
-        transform: scale(1.14);
-    }
-    100% {
-        box-shadow: 0 0 0 0 transparent;
-        transform: scale(1);
-    }
-}
-
-@keyframes fused-art {
-    0% {
-        opacity: 1;
-        transform: scale(1) rotate(0);
-    }
-    100% {
-        opacity: 0;
-        transform: scale(0.2) rotate(38deg);
-    }
 }
 
 @keyframes tile-in {
@@ -888,10 +570,8 @@
     z-index: 46;
     opacity: 0;
     font-size: 2.4rem;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    color: var(--accent-ink);
-    text-shadow: 0 2px 0 var(--panel), 0 6px 18px rgba(120, 105, 75, 0.25);
+    color: #fff;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
     pointer-events: none;
     transform: translate(-50%, 0);
 }
@@ -994,80 +674,21 @@
     }
 }
 
-.sparks {
+/* the pieces of whatever breaks, flying over everything — the tutorial
+   included, which breaks pieces of its own (js/ui/shatter.js) */
+.shatter {
     position: fixed;
     inset: 0;
-    z-index: 45;
-    pointer-events: none;
-    overflow: hidden;
-}
-
-.spark {
-    position: fixed;
-    display: block;
-    width: var(--size, 14px);
-    height: var(--size, 14px);
-    margin: calc(var(--size, 14px) / -2);
-    animation: spark-fly 0.62s cubic-bezier(0.15, 0.75, 0.35, 1) var(--delay, 0ms)
-        both;
-}
-
-.spark svg.icon {
+    z-index: 70;
     width: 100%;
     height: 100%;
-}
-
-.spark--piece {
-    background: none;
-    animation-duration: 0.72s;
-    filter: drop-shadow(0 2px 3px rgba(96, 82, 60, 0.28));
-}
-
-@keyframes spark-fly {
-    0% {
-        opacity: 0;
-        transform: translate(0, 0) rotate(0) scale(0.3);
-    }
-    12% {
-        opacity: 1;
-        transform: translate(calc(var(--dx) * 0.55), calc(var(--dy) * 0.75))
-            rotate(calc(var(--spin) * 0.35)) scale(1.18);
-    }
-    100% {
-        opacity: 0;
-        transform: translate(var(--dx), calc(var(--dy) + 54px))
-            rotate(var(--spin)) scale(0.62);
-    }
-}
-
-.shock {
-    position: fixed;
-    display: block;
-    width: 10px;
-    height: 10px;
-    margin: -5px;
-    border: 2px solid var(--accent, #cbb37a);
-    border-radius: 50%;
-    opacity: 0.85;
-    animation: shock-out 0.5s cubic-bezier(0.15, 0.8, 0.3, 1) both;
-}
-
-@keyframes shock-out {
-    0% {
-        opacity: 0.8;
-        transform: scale(0.4);
-    }
-    100% {
-        opacity: 0;
-        transform: scale(calc(var(--reach) / 10));
-    }
+    pointer-events: none;
 }
 
 .hand {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 9px 14px;
+    padding: 5px 0;
 }
 
 .slot {
@@ -1098,15 +719,9 @@
     box-shadow: 0 0 0 var(--ring) var(--accent-deep);
 }
 
-.slot--quiet {
-    color: var(--ink-soft);
-    opacity: 0.6;
-}
-
-.slot--quiet svg.icon {
-    width: 58%;
-    height: 58%;
-}
+/* ---- the end of a run ------------------------------------------------------
+   Game over, the run's score in the middle, the best small under it, over
+   the board blurred behind. A tap anywhere starts the next run. */
 
 .over {
     position: fixed;
@@ -1115,9 +730,11 @@
     display: none;
     place-items: center;
     padding: 20px;
+    cursor: pointer;
 
-    background: rgba(238, 240, 243, 0.62);
-    backdrop-filter: blur(2.5px);
+    background: rgba(22, 26, 34, 0.5);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
 }
 
 .over.is-open {
@@ -1129,57 +746,30 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    padding: 30px 44px;
+    gap: 10px;
+    padding: 30px 0;
     text-align: center;
 }
 
-.over__card .word {
-    margin-top: 14px;
-}
-
 .over__label {
-    font-size: 0.78rem;
-    font-weight: 800;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.85);
 }
 
-.over__crown {
-    display: grid;
-    place-items: center;
-    width: 76px;
-    height: 76px;
-    margin: 4px 0;
-}
-
-.over__crown svg.icon {
-    width: 76%;
-    height: 76%;
-}
-
-.over__card.is-won .over__crown {
-    animation: crown-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.over__top {
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--accent-ink);
-}
-
+/* as big as 3rem, and never wider than the screen */
 .over__score {
-    font-size: 3rem;
-    font-weight: 800;
-    line-height: 1.05;
-    font-variant-numeric: tabular-nums;
+    display: flex;
+    font-size: min(3rem, calc((100vw - 48px) / var(--wide, 1)));
+    color: #fff;
 }
 
-.over__meta {
-    margin-bottom: 12px;
-    font-size: 0.85rem;
-    color: var(--ink-soft);
+.over__best {
+    display: flex;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.over__best svg.blocks {
+    font-size: 1rem;
 }
 
 @keyframes over-in {
@@ -1188,27 +778,14 @@
     }
 }
 
-@keyframes crown-in {
-    from {
-        opacity: 0;
-        transform: scale(0.4) rotate(-8deg);
-    }
-}
-
 @media (max-width: 700px) {
     /* Retune the frame, not the rules: .table keeps its single padding
        declaration and picks the safe-area insets up with it. */
     :root {
-        --frame-top: 26px;
-        --frame-bottom: 58px;
+        --ad-space: 60px;
         --frame-side: 12px;
         --stack-gap: 12px;
     }
-
-    .track {
-        padding: 7px 8px;
-    }
-
 }
 
 .hand.is-waiting {
@@ -1219,21 +796,4 @@
     opacity: 0.22;
     filter: grayscale(1);
     transform: scale(0.94);
-}
-
-.tile.tint-star .tile__art {
-    animation: star-shine 2.2s ease-in-out infinite;
-    transform-origin: 50% 50%;
-}
-
-@keyframes star-shine {
-    0%,
-    100% {
-        transform: scale(1) rotate(0deg);
-        filter: drop-shadow(0 0 2px var(--i-star-halo));
-    }
-    50% {
-        transform: scale(1.09) rotate(8deg);
-        filter: drop-shadow(0 0 7px var(--i-star));
-    }
 }

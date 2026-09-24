@@ -1,8 +1,8 @@
-/* Pieces blown up and faded out, behind everything. See js/ui/backdrop.js. */
+/* The board's colours drifting behind everything. See js/ui/backdrop.js. */
 
 /* Behind the page rather than in front of the background: giving the table a
-   stacking context instead put it over the fixed buttons, and the back arrow
-   stopped taking clicks. */
+   stacking context instead put it over the fixed buttons, and they stopped
+   taking clicks. */
 .backdrop {
     position: fixed;
     inset: 0;
@@ -11,128 +11,11 @@
     pointer-events: none;
 }
 
-/* The colour of the current stage, laid over the page as soft pools. The
-   gradients are painted in currentColor so that transitioning `color` moves the
-   whole wash — a custom property inside a gradient would jump instead.
-
-   Two elements, because one cannot animate two transforms: the outer breathes
-   its opacity, the inner wanders. Their periods are deliberately awkward
-   numbers so the pair never lines up twice, which is what makes the drift read
-   as random rather than as a loop. */
-.wash {
-    position: absolute;
-    inset: -25%;
-    color: var(--vibe, #b08a63);
-    opacity: 0.3;
-    transition: color 1.6s ease;
-    animation: wash-breathe 29s ease-in-out infinite;
-}
-
-.wash__pool {
+/* the board's colours, blended and drifting (js/ui/backdrop.js): a canvas a
+   few dozen pixels across, stretched over the screen so the blend is soft */
+.fusion {
     position: absolute;
     inset: 0;
-    background:
-        /* the floor you are digging in, and light from the seam above it */
-        radial-gradient(66% 40% at 50% 92%, currentColor, transparent 74%),
-        radial-gradient(42% 26% at 14% 8%, currentColor, transparent 76%),
-        radial-gradient(38% 24% at 88% 26%, currentColor, transparent 78%),
-        linear-gradient(180deg, transparent 34%, currentColor 128%);
-    filter: blur(30px);
-    animation: wash-wander 63s ease-in-out infinite;
-    will-change: transform;
-}
-
-@keyframes wash-wander {
-    0%   { transform: translate3d(0, 0, 0) scale(1) rotate(0deg); }
-    17%  { transform: translate3d(-3.5%, 2.4%, 0) scale(1.08) rotate(-2.4deg); }
-    35%  { transform: translate3d(2.8%, -1.6%, 0) scale(1.03) rotate(1.8deg); }
-    52%  { transform: translate3d(4.2%, 3.1%, 0) scale(1.11) rotate(3.1deg); }
-    71%  { transform: translate3d(-2.1%, -2.8%, 0) scale(1.05) rotate(-1.2deg); }
-    88%  { transform: translate3d(1.4%, 1.9%, 0) scale(1.07) rotate(2.2deg); }
-    100% { transform: translate3d(0, 0, 0) scale(1) rotate(0deg); }
-}
-
-@keyframes wash-breathe {
-    0%, 100% { opacity: 0.26; }
-    50%      { opacity: 0.34; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .wash { transition: none; animation: none; }
-    .wash__pool { animation: none; }
-}
-
-.shard {
-    position: absolute;
-    display: block;
-    filter: blur(0.5px);
-    transform: rotate(var(--spin, 0deg));
-    animation: shard-drift var(--drift, 30s) ease-in-out var(--wait, 0s) infinite;
-    will-change: transform;
-}
-
-.shard svg.icon {
     width: 100%;
     height: 100%;
-}
-
-/* barely anything — enough that the shapes are not quite still */
-@keyframes shard-drift {
-    0%, 100% { transform: rotate(var(--spin, 0deg)) translate3d(0, 0, 0); }
-    50% { transform: rotate(var(--spin, 0deg)) translate3d(0, -2.2%, 0); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    /* The colour of the current stage, laid over the page as soft pools. The
-   gradients are painted in currentColor so that transitioning `color` moves the
-   whole wash — a custom property inside a gradient would jump instead.
-
-   Two elements, because one cannot animate two transforms: the outer breathes
-   its opacity, the inner wanders. Their periods are deliberately awkward
-   numbers so the pair never lines up twice, which is what makes the drift read
-   as random rather than as a loop. */
-.wash {
-    position: absolute;
-    inset: -25%;
-    color: var(--vibe, #b08a63);
-    opacity: 0.3;
-    transition: color 1.6s ease;
-    animation: wash-breathe 29s ease-in-out infinite;
-}
-
-.wash__pool {
-    position: absolute;
-    inset: 0;
-    background:
-        /* the floor you are digging in, and light from the seam above it */
-        radial-gradient(66% 40% at 50% 92%, currentColor, transparent 74%),
-        radial-gradient(42% 26% at 14% 8%, currentColor, transparent 76%),
-        radial-gradient(38% 24% at 88% 26%, currentColor, transparent 78%),
-        linear-gradient(180deg, transparent 34%, currentColor 128%);
-    filter: blur(30px);
-    animation: wash-wander 63s ease-in-out infinite;
-    will-change: transform;
-}
-
-@keyframes wash-wander {
-    0%   { transform: translate3d(0, 0, 0) scale(1) rotate(0deg); }
-    17%  { transform: translate3d(-3.5%, 2.4%, 0) scale(1.08) rotate(-2.4deg); }
-    35%  { transform: translate3d(2.8%, -1.6%, 0) scale(1.03) rotate(1.8deg); }
-    52%  { transform: translate3d(4.2%, 3.1%, 0) scale(1.11) rotate(3.1deg); }
-    71%  { transform: translate3d(-2.1%, -2.8%, 0) scale(1.05) rotate(-1.2deg); }
-    88%  { transform: translate3d(1.4%, 1.9%, 0) scale(1.07) rotate(2.2deg); }
-    100% { transform: translate3d(0, 0, 0) scale(1) rotate(0deg); }
-}
-
-@keyframes wash-breathe {
-    0%, 100% { opacity: 0.26; }
-    50%      { opacity: 0.34; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .wash { transition: none; animation: none; }
-    .wash__pool { animation: none; }
-}
-
-.shard { animation: none; }
 }

@@ -25,11 +25,11 @@ window.Game = window.Game || {};
             var y = box.top + box.height / 2;
 
             var chip = document.createElement("div");
-            chip.className = "float float--fly " + (tintClass || "");
+            chip.className = "float " + (tintClass || "");
             chip.style.left = x + "px";
             chip.style.top = y + "px";
 
-            var score = document.getElementById("scoreboard");
+            var score = document.querySelector(".scoreboard__value");
             if (score) {
                 var aim = score.getBoundingClientRect();
                 chip.style.setProperty("--dx", aim.left + aim.width / 2 - x + "px");
@@ -38,31 +38,10 @@ window.Game = window.Game || {};
 
             chip.innerHTML =
                 (iconName ? Game.Icons.svg(iconName) : "") +
-                "<span>" +
-                text +
-                "</span>";
+                Game.Icons.number(text);
 
             document.body.appendChild(chip);
             this.autoRemove(chip, this.FLY_MS + 260);
-        },
-
-        float: function (anchor, text, iconName, tintClass, extraClass) {
-            if (!anchor) return;
-
-            var box = anchor.getBoundingClientRect();
-            var chip = document.createElement("div");
-            chip.className =
-                "float " + (tintClass || "") + " " + (extraClass || "");
-            chip.style.left = box.left + box.width / 2 + "px";
-            chip.style.top = box.top + box.height / 2 + "px";
-            chip.innerHTML =
-                (iconName ? Game.Icons.svg(iconName) : "") +
-                "<span>" +
-                text +
-                "</span>";
-
-            document.body.appendChild(chip);
-            this.autoRemove(chip, 1600);
         }
     };
 })();

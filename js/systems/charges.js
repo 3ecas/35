@@ -4,16 +4,12 @@ window.Game = window.Game || {};
    CHARGES
    -----------------------------------------------------------------------------
    One dial beside the hand: the bomb. It fills on merges, any merge at all,
-   one for one, and pressing it puts a stick of dynamite in your hand to place.
+   one for one, and pressing it puts a bomb — the 0 — in your hand to place.
    It is the wage for showing up — a run of ordinary merges keeps it coming.
 
-   The star used to be a second dial here. It is a piece again: it falls in
-   with the seam, and only a blast sets it off (js/systems/board.js), so the
-   bomb is also how you get at one.
-
    The dial counts merges rather than points, and that is the whole trick.
-   Points inflate — a merge at diamond is worth thousands of times a merge at
-   dirt, and worse, a placement late in a run sets off cascades that score
+   Points inflate — a merge at 34 is worth thousands of times a merge at 1,
+   and worse, a placement late in a run sets off cascades that score
    several merges at once. Pricing a dial in points meant it arrived every 22
    moves early on and every 6 moves late, which is the opposite of a cost.
    Counted this way, it costs the same amount of play wherever you are on the
@@ -50,10 +46,7 @@ window.Game = window.Game || {};
                 if (ready || much <= 0) return;
 
                 charge = Math.min(1, charge + much / cost());
-                if (charge >= 1) {
-                    ready = true;
-                    Game.Events.emit("charge:ready", { name: name });
-                }
+                if (charge >= 1) ready = true;
                 tell();
             },
 
@@ -70,7 +63,6 @@ window.Game = window.Game || {};
 
                 ready = false;
                 charge = 0;
-                Game.Events.emit("charge:spent", { name: name });
                 tell();
                 return true;
             }
@@ -84,10 +76,10 @@ window.Game = window.Game || {};
 
     function drop(cell) {
         if (!cell) return false;
-        // the stick is placed, not detonated: it falls down the column you
+        // the bomb is placed, not detonated: it falls down the column you
         // picked and burns its fuse there, going off on its own after
-        // dynamiteFuse turns if a merge next to it has not lit it first
-        return !!Game.Round.place(cell.x, Game.Pieces.dynamite.id);
+        // bombFuse turns if a merge next to it has not lit it first
+        return !!Game.Round.place(cell.x, Game.Pieces.bomb.id);
     }
 
     var bomb = dial("bomb", bombCost, drop);

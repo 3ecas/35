@@ -170,27 +170,18 @@ window.Game = window.Game || {};
             Game.Toast.toScore(lead, "+" + step.points, made.icon, made.tint);
         }
 
-        kept.forEach(function (id, i) {
-            var tile = tiles[id];
-            if (!tile) return;
-
-            var box = tile.getBoundingClientRect();
-            var x = box.left + box.width / 2;
-            var y = box.top + box.height / 2;
-
-            if (i === 0) Game.Sparks.ring(x, y, made.tier);
-            Game.Sparks.burst(
-                x,
-                y,
-                (i === 0 ? 9 : 5) + Math.min(20, made.tier + chain * 3),
-                made
-            );
-        });
-
         if (fresh) {
             seenThisDrop[made.id] = true;
             Game.Effects.discover(lead);
         }
+    }
+
+    /* Whatever is standing on these squares breaks apart and flies — read off
+       the board as drawn, so call it before the squares are repainted. */
+    function shatter(ids, force) {
+        ids.forEach(function (id) {
+            if (shown[id]) Game.Shatter.tile(tiles[id], shown[id], force);
+        });
     }
 
     function playFuse(step, chain, done) {
@@ -209,8 +200,11 @@ window.Game = window.Game || {};
 
         var at = 0;
 
+        // the run goes one tile after another, each breaking as it goes, and
+        // the tile that is kept breaks last, with the new number in its place
         function burn() {
             if (at >= trail.length) {
+                shatter(kept, 1);
                 paintBoard(step.board);
                 playMerge(step, chain);
                 done();
@@ -220,19 +214,9 @@ window.Game = window.Game || {};
             var id = trail[at];
             at++;
 
-            var tile = tiles[id];
-            if (tile) {
-                tile.classList.remove("is-fused");
-                void tile.offsetWidth;
-                tile.classList.add("is-fused");
-
-                var box = tile.getBoundingClientRect();
-                Game.Sparks.burst(
-                    box.left + box.width / 2,
-                    box.top + box.height / 2,
-                    3
-                );
-            }
+            shatter([id], 1);
+            paintContents(id, null);
+            paintState(id);
 
             Game.Events.emit("board:fuse", {
                 step: at,
@@ -240,11 +224,7 @@ window.Game = window.Game || {};
                 piece: step.from
             });
 
-            window.setTimeout(function () {
-                paintContents(id, null);
-                paintState(id);
-                burn();
-            }, FUSE_MS);
+            window.setTimeout(burn, FUSE_MS);
         }
 
         burn();
@@ -260,20 +240,13 @@ window.Game = window.Game || {};
             void tile.offsetWidth;
             tile.style.setProperty("--wait", i * 40 + "ms");
             tile.classList.add("is-cleared");
-
-            var box = tile.getBoundingClientRect();
-            Game.Sparks.burst(
-                box.left + box.width / 2,
-                box.top + box.height / 2,
-                5
-            );
         });
 
         Game.Effects.shake(host, 8, 0);
         Game.Effects.flash(8);
 
         if (middle && step.points) {
-            Game.Toast.toScore(middle, "+" + step.points, null, "tint-gold");
+            Game.Toast.toScore(middle, "+" + step.points);
         }
     }
 
@@ -295,6 +268,9 @@ window.Game = window.Game || {};
         }
 
         if (step.type === "clear" || step.type === "cash" || step.type === "blast") {
+            // a cash takes every 35 in the run; a blast goes off harder
+            shatter(step.type === "cash" ? step.fuse : step.cells,
+                    step.type === "blast" ? 1.5 : 1);
             paintBoard(step.board);
             playClear(step);
 
@@ -434,10 +410,6 @@ window.Game = window.Game || {};
                 choosing = false;
             });
 
-            Game.Events.on("game:grown", function (detail) {
-                enqueue(detail.settled.steps);
-            });
-
             Game.Events.on("game:rain", function (detail) {
                 enqueue(detail.steps);
             });
@@ -446,13 +418,6 @@ window.Game = window.Game || {};
 
         isBusy: function () {
             return busy;
-        },
-
-        refresh: function () {
-            paintBoard(Game.Board.snapshot());
-        },
-
-        // the grid itself changed shape, not just what is standing on it
-        rebuild: build
+        }
     };
 })();

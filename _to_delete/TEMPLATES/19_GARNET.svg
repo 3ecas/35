@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <g transform="scale(21.333333333333332)" fill="#000"><path d="M12 3.4a8.6 8.6 0 1 1 0 17.2 8.6 8.6 0 0 1 0-17.2Z" fill="#a33246"/><path d="M20.6 12A8.6 8.6 0 0 1 12 20.6V12Z" fill="#74202f"/><path d="M12 3.4a8.6 8.6 0 0 0-8.6 8.6h17.2A8.6 8.6 0 0 0 12 3.4Z" fill="#c8586c"/><path d="M12 7.2 15.6 12 12 16.8 8.4 12Z" fill="#74202f"/><path d="M12 8.9 13.9 12H12Z" fill="#c8586c"/><path d="M6.6 7.4A7.2 7.2 0 0 1 11 5.2l.2 1.1a6 6 0 0 0-3.7 1.9Z" fill="rgba(255, 255, 255, 0.55)"/></g>
-</svg>

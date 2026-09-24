@@ -3,7 +3,7 @@ window.Game = window.Game || {};
 /* =============================================================================
    CHARGE VIEW
    -----------------------------------------------------------------------------
-   The bomb dial beside the hand. A small disc that fills like a glass: a
+   The bomb beside the hand. A small square that fills like a glass: a
    level that rises as the charge does, with a few motes drifting up through
    it so the thing is visibly alive without asking for attention. It is meant to
    be read out of the corner of the eye — the piece sitting on top is what you
@@ -14,7 +14,7 @@ window.Game = window.Game || {};
    ============================================================================= */
 
 (function () {
-    var PAD = 15;              // room around the disc for the ready-state motes
+    var PAD = 15;              // room around the square for the ready-state motes
     var GREY = "#aeb6c0";      // what a dial looks like while it is still filling
 
     var dials = [];
@@ -22,29 +22,18 @@ window.Game = window.Game || {};
     var last = 0;
 
     /* ---- the piece itself, small enough to be dust ---------------------------
-       The dial throws off what it is: little sticks. Drawn rather than scaled
+       The dial throws off what it is: little zeros. Drawn rather than scaled
        down from the art, because at four pixels the real drawing is a smudge —
        what survives at this size is the silhouette and nothing else. */
-    function stick(ctx, x, y, r, turn) {
-        var w = r * 1.5;
-        var h = r * 0.95;
+    function zero(ctx, x, y, r, turn) {
         ctx.save();
         ctx.translate(x, y);
         ctx.rotate(turn);
         ctx.beginPath();
-        // a rounded body, and a nub for the fuse
-        ctx.moveTo(-w / 2 + h / 3, -h / 2);
-        ctx.lineTo(w / 2 - h / 3, -h / 2);
-        ctx.quadraticCurveTo(w / 2, -h / 2, w / 2, 0);
-        ctx.quadraticCurveTo(w / 2, h / 2, w / 2 - h / 3, h / 2);
-        ctx.lineTo(-w / 2 + h / 3, h / 2);
-        ctx.quadraticCurveTo(-w / 2, h / 2, -w / 2, 0);
-        ctx.quadraticCurveTo(-w / 2, -h / 2, -w / 2 + h / 3, -h / 2);
-        ctx.closePath();
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(w / 2 + r * 0.22, -h * 0.55, r * 0.26, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.ellipse(0, 0, r * 0.5, r * 0.78, 0, 0, Math.PI * 2);
+        ctx.lineWidth = r * 0.42;
+        ctx.strokeStyle = ctx.fillStyle;
+        ctx.stroke();
         ctx.restore();
     }
 
@@ -66,7 +55,7 @@ window.Game = window.Game || {};
         return {
             angle: Math.random() * Math.PI * 2,
             spin: (Math.random() < 0.5 ? -1 : 1) * (0.25 + Math.random() * 0.5),
-            out: 0.02 + Math.random() * 0.85,      // 0 at the rim, 1 at the edge
+            out: 0.02 + Math.random() * 0.85,      // 0 at the square, 1 at the canvas edge
             size: 1.8 + Math.random() * 1.6,
             turn: Math.random() * Math.PI,
             twist: (Math.random() < 0.5 ? -1 : 1) * (0.4 + Math.random()),
@@ -80,11 +69,10 @@ window.Game = window.Game || {};
 
         var one = {
             name: host.getAttribute("data-charge"),
-            shape: stick,
+            shape: zero,
             host: host,
             canvas: canvas,
             ctx: canvas.getContext("2d"),
-            tint: host.getAttribute("data-tint") || "#e2b75c",
             lit: host.getAttribute("data-lit") || "#ffd873",
             charge: 0,
             shown: 0,
@@ -115,7 +103,7 @@ window.Game = window.Game || {};
         var h = one.tall;
         var cx = w / 2;
         var cy = h / 2;
-        var r = Math.min(w, h) / 2 - PAD;           // the disc itself
+        var r = Math.min(w, h) / 2 - PAD;           // half the square itself
         var top = cy - r;
         var span = r * 2;
 
@@ -128,7 +116,7 @@ window.Game = window.Game || {};
 
         ctx.save();
         ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.rect(cx - r, cy - r, span, span);
         ctx.clip();
 
         var level = top + span * (1 - Math.max(0, Math.min(1, one.shown)));
@@ -155,7 +143,7 @@ window.Game = window.Game || {};
 
         ctx.restore();
 
-        // and, once it is full, a scatter of sparks orbiting outside the rim
+        // and, once it is full, a scatter of sparks going round outside the edge
         if (one.ready) {
             for (var k = 0; k < one.sparks.length; k++) {
                 var s = one.sparks[k];
@@ -165,13 +153,15 @@ window.Game = window.Game || {};
                     s.life += gap * 0.55;
                     if (s.life > 1) { one.sparks[k] = spark(); one.sparks[k].life = 0; continue; }
                 }
-                var reach = r + 3 + s.out * (PAD - 4);
+                // round a square just outside the edge, not a circle
+                var cos = Math.cos(s.angle);
+                var sin = Math.sin(s.angle);
+                var reach = (r + 3 + s.out * (PAD - 4)) / Math.max(Math.abs(cos), Math.abs(sin));
                 var fade = Math.sin(Math.min(1, s.life) * Math.PI);
 
                 ctx.globalAlpha = 0.85 * fade;
                 ctx.fillStyle = one.lit;
-                one.shape(ctx, cx + Math.cos(s.angle) * reach,
-                          cy + Math.sin(s.angle) * reach, s.size, s.turn);
+                one.shape(ctx, cx + cos * reach, cy + sin * reach, s.size, s.turn);
             }
         }
 

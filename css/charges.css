@@ -1,35 +1,32 @@
-/* The bomb dial beside the hand. Quiet by design: a disc that fills, the
-   piece on top, and a ring that only brightens once it is worth pressing. */
+/* The piece in hand and the bomb, side by side on one line, centred under
+   the grid. The bomb is quiet by design: a small square that fills, the 0 on
+   top, and an edge that only darkens once it is worth pressing. */
 
 .tray {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    display: flex;
+    justify-content: center;
     align-items: center;
-    justify-items: center;
     gap: 14px;
     width: 100%;
 }
-
-.tray .hand { grid-column: 2; }
-.tray .dial--bomb { justify-self: start; }
 
 .dial {
     position: relative;
     display: grid;
     place-items: center;
-    width: 46px;
-    height: 46px;
+    width: 40px;
+    height: 40px;
     padding: 0;
-    border: var(--ring) solid var(--line);
-    border-radius: 50%;
-    background: var(--panel-soft);
+    border: var(--ring) solid rgba(255, 255, 255, 0.95);
+    border-radius: 0;
+    background: var(--cell);
     cursor: not-allowed;
     transition: border-color 0.22s ease, box-shadow 0.22s ease,
         transform 0.14s ease;
 }
 
-/* wider than the button on purpose: the ready-state sparks orbit outside the
-   rim, so the canvas has to reach past it */
+/* wider than the button on purpose: the ready-state sparks go round outside the
+   edge, so the canvas has to reach past it */
 .dial__ink {
     position: absolute;
     inset: -15px;
@@ -59,8 +56,8 @@
 }
 
 .dial--bomb.is-ready {
-    border-color: var(--i-tnt-deep);
-    box-shadow: 0 0 10px rgba(194, 112, 95, 0.4);
+    border-color: var(--bomb);
+    box-shadow: 0 0 10px rgba(45, 42, 46, 0.35);
 }
 
 /* taken in hand: the board is waiting for the square it acts on */
@@ -69,8 +66,8 @@
 }
 
 .dial--bomb.is-armed {
-    border-color: var(--i-tnt-deep);
-    box-shadow: 0 0 16px rgba(194, 112, 95, 0.55);
+    border-color: var(--bomb);
+    box-shadow: 0 0 16px rgba(45, 42, 46, 0.5);
 }
 
 .dial.is-ready:hover { transform: translateY(-2px); }

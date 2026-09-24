@@ -13,15 +13,27 @@ window.Game = window.Game || {};
     var era = 0;
 
     var COUNT_MS = 420;
+    var drawn = null;
 
+    // in the tiles' block digits; redrawn only when the whole number moves,
+    // and told how many ems wide it runs, so a score in the billions still
+    // fits across the screen (css/game.css)
     function paint() {
-        if (valueEl) valueEl.textContent = Math.round(shown);
+        var value = Math.round(shown);
+        if (!valueEl || value === drawn) return;
+        drawn = value;
+        valueEl.innerHTML = Game.Icons.number(value);
+        var digits = valueEl.firstChild;
+        if (digits) valueEl.style.setProperty("--wide", parseFloat(digits.style.width));
     }
 
     function paintBest() {
         var round = Game.Round.get();
         if (!bestEl || !round) return;
-        bestEl.textContent = round.best ? "best " + round.best : "";
+        // no word for it: the small number in the corner is the one to beat
+        bestEl.innerHTML = round.best
+            ? Game.Icons.number(round.best, "Best " + round.best)
+            : "";
     }
 
     function run() {

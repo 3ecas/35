@@ -1,4 +1,4 @@
-"""the macOS twin of serve.ps1 — same job, same no-store rule.
+"""A static server for the game, with caching switched off.
 
 Safari on a phone will hold onto a cached config.js across a reload, which
 during testing looks exactly like a change that did not work. no-store is

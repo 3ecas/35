@@ -2,32 +2,25 @@ window.Game = window.Game || {};
 
 Game.Config = {
     game: {
-        saveKey: "gridoffortune.save",
+        saveKey: "thirtyfive.save",
 
         cols: 6,
         rows: 6,
-        seedPieces: 1,   // was 6 — a lone dirt to drop onto, so the first merge teaches itself
+        seedPieces: 1,   // a lone 1 to drop onto, so the first merge teaches itself
         handSize: 1,
 
         introPause: 500,
 
-        // was 3. Two-of-a-kind makes each rung cost 2x the one below instead
-        // of 3x, which is what puts the top of the ladder in reach at all.
+        // three that touch, on the four sides, become one of the next rung
         mergeAt: 3,
 
-        // count the corners as touching too, not just the four sides
-        mergeDiagonals: false,
-
-        dealBehind: 0,   // was 1 — your best piece is dealt as soon as you make it
-
-        growStranded: false,
-
+        // the same piece is dealt at most this many times in a row
         sameInRow: 2,
 
+        // a run longer than three hands back all but two of itself, one rung up
         surplusStays: true,
 
-        surplusMost: 0,
-
+        // the seam: after `after` drops, `count` pieces fall in every `every`
         falls: [
             { after: 0, count: 2, every: 5 },
             { after: 110, count: 3, every: 5 },
@@ -39,69 +32,49 @@ Game.Config = {
             { after: 430, count: 3, every: 1 }
         ],
 
-        // Two knobs over the table above, both keeping its shape: fallFewer
-        // takes pieces off every count, fallSlower puts plays between falls.
-        // Negative numbers push the other way — fallFewer: -1 adds a piece to
-        // every fall. One less piece per fall, at the table's own spacing: the
-        // extra play between falls is gone, which is where the pressure the
-        // bomb and the stars take off the board is paid back.
+        // Takes one piece off every count in the table above, keeping its
+        // shape. The extra play between falls is where the pressure the bomb
+        // and infinity take off the board is paid back. Negative adds pieces.
         fallFewer: 1,
-        fallSlower: 0,
 
+        // a fall never takes more than this share of the free squares, and
+        // never less than fallLeast pieces
         fallRoom: 0.25,
         fallLeast: 1,
 
+        // falling pieces go to the columns with the most room
         fallEven: true,
 
-        liveArt: true,      // PNGs in ICONS/ replace the built-in piece art
-        liveArtWait: 1500,
-
-        clearColumns: false,
-        clearRows: false,
-        clearBonus: 3,
-
+        // three 35s have nowhere to go: they cash in for cashBonus times
+        // their worth and leave the board
         cashBonus: 2,
-        cashLeaves: true,
 
+        // each link of a chain pays chainStep more, up to chainMost times
         chainStep: 1,
         chainMost: 5,
 
         shakeForce: 0.6,
 
+        // a blast pays this share of what it destroys
         blastPays: 1,
 
-        // turns a stick sits before it goes off, if nothing lights it first
-        dynamiteFuse: 5,
+        // turns a bomb sits before it goes off, if no merge lights it first
+        bombFuse: 5,
 
-        // how far the blast reaches from the stick, corners included. At 1 it
+        // how far the blast reaches from the bomb, corners included. At 1 it
         // takes the eight squares around it and nothing further out.
         blastReach: 1,
 
-        blastSpacing: 2,
-
-        // Dynamite is never dealt or dropped any more — the only sticks on the
-        // board are the ones the player placed off the bomb dial. These are
-        // kept at zero rather than deleted so the sky can be given it back.
-        dynamiteFrom: 1250,
-        dynamiteChance: 0,
-        dynamiteCap: 1,
-
-        // The star falls in with the seam again, in place of a piece: past
-        // lodestoneFrom points, each falling piece has this chance of being
-        // one. It joins nothing, and only a blast sets it off — then you name
-        // a piece and every one of them goes.
-        lodestoneFrom: 6250,
-        lodestoneChance: 0.015,
-        lodestoneCap: 1,
-
-        // merges that fill the bomb — any merge, one for one
+        // merges that fill the bomb dial — any merge, one for one
         bombPace: 24,
 
-
-        rubbleFrom: 8,
-        rubbleRise: 0.05,
-        rubbleMost: 0.45,
-        rubbleCap: 1,
-        rubbleBreaks: true
+        // Infinity falls in with the seam, in place of a piece: past
+        // infinityFrom points, each falling piece has this chance of being
+        // one. It joins nothing; a merge beside it or a blast over it sets it
+        // off, and then you name a number and every one of them goes.
+        infinityFrom: 6250,
+        infinityChance: 0.015,
+        infinityCap: 1,
+        infinitySpacing: 2
     }
 };

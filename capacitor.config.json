@@ -1,11 +1,11 @@
 {
-  "appId": "com.bernardogramaxo.gridoffortune",
-  "appName": "Grid of Fortune",
+  "appId": "com.bernardogramaxo.thirtyfive",
+  "appName": "35",
   "webDir": "www",
-  "backgroundColor": "#f5efe3",
+  "backgroundColor": "#eef0f3",
   "ios": {
     "contentInset": "never",
-    "backgroundColor": "#f5efe3",
+    "backgroundColor": "#eef0f3",
     "scrollEnabled": false
   }
 }

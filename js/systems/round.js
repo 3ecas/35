@@ -33,7 +33,6 @@ window.Game = window.Game || {};
             tally: state.tally,
             highest: state.highest,
             sinceFall: state.sinceFall,
-            picked: state.picked,
             runId: state.runId,
             runLen: state.runLen,
             hand: state.hand.map(function (piece) { return piece.id; }),
@@ -83,27 +82,10 @@ window.Game = window.Game || {};
         }
     }
 
-    function rubbleChance() {
+    function infinityNow() {
         var s = settings();
-        var over = state.highest - s.rubbleFrom + 1;
-        if (over <= 0) return 0;
-        return Math.min(s.rubbleMost, over * s.rubbleRise);
-    }
-
-    function rubbleNow() {
-        return Math.random() < rubbleChance();
-    }
-
-    function dynamiteNow() {
-        var s = settings();
-        if (state.score < s.dynamiteFrom) return false;
-        return Math.random() < s.dynamiteChance;
-    }
-
-    function lodestoneNow() {
-        var s = settings();
-        if (state.score < s.lodestoneFrom) return false;
-        return Math.random() < s.lodestoneChance;
+        if (state.score < s.infinityFrom) return false;
+        return Math.random() < s.infinityChance;
     }
 
     function seam() {
@@ -111,15 +93,7 @@ window.Game = window.Game || {};
         var found = null;
 
         for (var i = 0; i < table.length; i++) {
-            var level = table[i];
-
-            if (typeof level.after === "number") {
-                if (state.placed >= level.after) found = level;
-                continue;
-            }
-
-            var piece = Game.Pieces.byId(level.at);
-            if (piece && state.highest >= piece.tier) found = level;
+            if (state.placed >= table[i].after) found = table[i];
         }
 
         return found;
@@ -127,12 +101,7 @@ window.Game = window.Game || {};
 
     function fallGap() {
         var level = seam();
-        if (!level) return Infinity;
-
-        // fallSlower spaces the falls out by the same amount at every step of
-        // the table. One play between falls is the floor.
-        var s = settings();
-        return Math.max(1, level.every + (s.fallSlower || 0));
+        return level ? Math.max(1, level.every) : Infinity;
     }
 
     function fallCount() {
@@ -153,10 +122,10 @@ window.Game = window.Game || {};
         var steps = [];
         var wide = Game.Board.size().cols;
 
-        // The opening is dirt and nothing else. It stops short rather
-        // than let one merge before the first move, which would put a stone
-        // on the board that the run has not made yet.
-        var dirt = Game.Pieces.list[0];
+        // The opening is 1s and nothing else. It stops short rather than let
+        // one merge before the first move, which would put a 2 on the board
+        // that the run has not made yet.
+        var first = Game.Pieces.list[0];
 
         for (var i = 0; i < settings().seedPieces; i++) {
             var free = [];
@@ -165,12 +134,12 @@ window.Game = window.Game || {};
             }
 
             var calm = free.filter(function (col) {
-                return !Game.Board.wouldJoin(col, dirt.id);
+                return !Game.Board.wouldJoin(col, first.id);
             });
             if (!calm.length) break;
 
             var where = calm[Math.floor(Math.random() * calm.length)];
-            var result = Game.Board.drop(where, dirt.id);
+            var result = Game.Board.drop(where, first.id);
             if (result) steps = steps.concat(result.steps);
         }
 
@@ -215,9 +184,7 @@ window.Game = window.Game || {};
         var made = [];
         var steps = [];
         var points = 0;
-        var dirt = 0;
-        var sticks = 0;
-        var stones = 0;
+        var infinities = 0;
 
         for (var i = 0; i < count; i++) {
             var open = [];
@@ -226,32 +193,18 @@ window.Game = window.Game || {};
             }
             if (!open.length) break;
 
-            var stone = stones < settings().lodestoneCap && lodestoneNow();
-            if (stone) stones++;
+            var special = infinities < settings().infinityCap && infinityNow();
+            if (special) infinities++;
 
-            var stick = !stone && sticks < settings().dynamiteCap && dynamiteNow();
-            if (stick) sticks++;
-
-            var spoilt =
-                !stone && !stick && dirt < settings().rubbleCap && rubbleNow();
-            if (spoilt) dirt++;
-
-            var piece = stone
-                ? Game.Pieces.lodestone
-                : stick
-                ? Game.Pieces.dynamite
-                : spoilt
-                ? Game.Pieces.rubble
+            var piece = special
+                ? Game.Pieces.infinity
                 : Game.Pieces.randomFor(state.highest);
 
+            // infinity keeps its distance from any other on the board
             var pool = open;
-            if (stone || stick) {
+            if (special) {
                 var apart = open.filter(function (col) {
-                    return Game.Board.spacedFrom(
-                        col,
-                        piece.id,
-                        settings().blastSpacing
-                    );
+                    return Game.Board.spacedFrom(col, piece.id, settings().infinitySpacing);
                 });
                 if (apart.length) pool = apart;
             }
@@ -270,21 +223,14 @@ window.Game = window.Game || {};
         if (!steps.length) return;
 
         Game.Events.emit("game:rain", { steps: steps, count: count });
-        absorb({ made: made, points: points }, 0);
+        absorb({ made: made, points: points });
     }
 
-    function grownTo(piece, tier) {
-        while (piece && piece.tier < tier && piece.next) {
-            piece = Game.Pieces.byId(piece.next);
-        }
-        return piece;
-    }
-
-    function absorb(result, depth) {
+    function absorb(result) {
         state.score += result.points;
         state.tally += result.made.length;
         record(result.made);
-        raise(result.made, depth || 0);
+        raise(result.made);
     }
 
     /* What a move costs, either side of the pieces settling: it counts against
@@ -292,7 +238,6 @@ window.Game = window.Game || {};
        not spend a turn skips both halves. */
     function openTurn() {
         state.placed += 1;
-        checkSeam();
     }
 
     function closeTurn() {
@@ -303,9 +248,9 @@ window.Game = window.Game || {};
         }
     }
 
-    /* A full board ends the run, but not while a stick is standing on it:
-       every stick goes off first, and the run carries on in the room that
-       makes. Nor while a star's sweep is still owed — naming a piece makes
+    /* A full board ends the run, but not while a bomb is standing on it:
+       every bomb goes off first, and the run carries on in the room that
+       makes. Nor while infinity's sweep is still owed — naming a number makes
        room too. True only when there is no way left to go on. */
     function stuck() {
         if (!Game.Board.isFull()) return false;
@@ -313,7 +258,7 @@ window.Game = window.Game || {};
         var blown = Game.Board.detonate();
         if (blown && blown.steps.length) {
             Game.Events.emit("game:rain", { steps: blown.steps, count: 0 });
-            absorb(blown, 0);
+            absorb(blown);
         }
         return Game.Board.isFull() && Game.Board.owes() <= 0;
     }
@@ -321,12 +266,11 @@ window.Game = window.Game || {};
     /* Everything that happens after a piece lands, whoever put it there.
        `free` is for a piece that arrives without costing the player a move. */
     function turn(result, free) {
-        state.picked = 0;
         if (!free) openTurn();
 
         Game.Events.emit("board:steps", { steps: result.steps });
 
-        absorb(result, 0);
+        absorb(result);
         fillHand();
 
         if (!free) closeTurn();
@@ -334,10 +278,10 @@ window.Game = window.Game || {};
         var blown = Game.Board.burn();
         if (blown && blown.steps.length) {
             Game.Events.emit("game:rain", { steps: blown.steps, count: 0 });
-            absorb(blown, 0);
+            absorb(blown);
         }
 
-        // before the sweep is asked for: a star caught in a full board's last
+        // before the sweep is asked for: infinity caught in a full board's last
         // blast is owed like any other
         var over = stuck();
 
@@ -354,47 +298,20 @@ window.Game = window.Game || {};
         return result;
     }
 
-    function checkSeam() {
-        var now = seam();
-        if (now === state.seam) return;
-
-        state.seam = now;
-        Game.Events.emit("game:seam", { level: now });
-    }
-
-    function raise(made, depth) {
+    function raise(made) {
         var was = Game.Pieces.dealing(state.highest);
-        var before = was[0];
 
         made.forEach(function (step) {
             var piece = Game.Pieces.byId(step.piece);
             if (piece.tier > state.highest) state.highest = piece.tier;
         });
 
-        checkSeam();
-
         // The window moves at either end. Early on it only grows at the top,
-        // with dirt still at the bottom, and that is a new deal all the same.
+        // with the 1 still at the bottom, and that is a new deal all the same.
         var now = Game.Pieces.dealing(state.highest);
-        var after = now[0];
-        if ((after === before && now.length === was.length) || depth > 12) return;
+        if (now[0] === was[0] && now.length === was.length) return;
 
-        Game.Events.emit("game:dealing", { lowest: after });
-
-        // only a rung dropping off the bottom leaves anything stranded
-        if (!settings().growStranded || after === before) return;
-
-        state.hand = state.hand.map(function (piece) {
-            return grownTo(piece, after.tier);
-        });
-        Game.Events.emit("game:hand", {});
-
-        var grown = Game.Board.growUpTo(after.tier);
-        if (!grown) return;
-
-        var settled = Game.Board.settle();
-        Game.Events.emit("game:grown", { grown: grown, settled: settled });
-        absorb(settled, depth + 1);
+        Game.Events.emit("game:dealing", { lowest: now[0] });
     }
 
     function record(made) {
@@ -419,20 +336,13 @@ window.Game = window.Game || {};
         if (record) state.best = state.score;
         drop();
 
-        var top = Game.Pieces.top;
-        var crowns = Game.Board.cells().filter(function (cell) {
-            return cell.piece === top.id;
-        }).length;
-
         Game.Events.emit("game:over", {
             reason: reason,
             score: state.score,
             best: state.best,
             record: record,
             made: state.tally,
-            moves: state.placed,
-            crowns: crowns,
-            highest: Game.Board.highest()
+            moves: state.placed
         });
     }
 
@@ -458,26 +368,16 @@ window.Game = window.Game || {};
                 tally: 0,
                 highest: 1,
                 sinceFall: 0,
-                seam: null,
                 hand: [],
-                picked: 0,
                 runId: null,
                 runLen: 0,
                 best: save.best,
                 found: save.found
             };
-            state.seam = seam();
             fillHand();
 
             Game.Events.emit("game:started", {});
             window.setTimeout(open, settings().introPause);
-        },
-
-        peek: readSave,
-
-        saved: function () {
-            var save = readSave();
-            return !!(save.game && Array.isArray(save.game.board));
         },
 
         resume: function () {
@@ -496,27 +396,20 @@ window.Game = window.Game || {};
                 tally: game.tally || 0,
                 highest: game.highest || 1,
                 sinceFall: game.sinceFall || 0,
-                seam: null,
                 hand: (game.hand || [])
                     .map(function (id) { return Game.Pieces.byId(id); })
                     .filter(Boolean),
-                picked: game.picked || 0,
                 runId: game.runId || null,
                 runLen: game.runLen || 0,
                 best: save.best,
                 found: save.found
             };
-            state.seam = seam();
             fillHand();
             keep();
 
             Game.Events.emit("game:started", {});
             return true;
         },
-
-        pick: function () {},
-
-        cycle: function () {},
 
         play: function (column) {
             if (!state || !state.running || state.opening) return null;
@@ -533,7 +426,7 @@ window.Game = window.Game || {};
         },
 
         /* A piece put on the board by something other than the hand — the bomb
-           dial. It is free: the stick is the reward, and making the player pay
+           dial. It is free: the bomb is the reward, and making the player pay
            a move for it as well would mean the sky gets a fall out of the very
            thing it gave you for being buried. */
         place: function (column, pieceId) {
@@ -552,7 +445,7 @@ window.Game = window.Game || {};
             if (!out) return null;
 
             Game.Events.emit("board:steps", { steps: out.steps });
-            absorb(out, 0);
+            absorb(out);
 
             if (Game.Board.owes() > 0) {
                 Game.Events.emit("game:choosing", { owed: Game.Board.owes() });
@@ -567,10 +460,6 @@ window.Game = window.Game || {};
             if (stuck()) finish("full");
             else keep();
             return out;
-        },
-
-        give: function () {
-            finish("full");
         }
     };
 })();

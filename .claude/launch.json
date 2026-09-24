@@ -2,37 +2,13 @@
     "version": "0.0.1",
     "configurations": [
         {
-            "name": "gridoffortune",
+            "name": "35",
             "runtimeExecutable": "python3",
             "runtimeArgs": [
                 ".claude/serve.py",
                 "4173"
             ],
             "port": 4173
-        },
-        {
-            "name": "gridoffortune-windows",
-            "runtimeExecutable": "powershell",
-            "runtimeArgs": [
-                "-NoProfile",
-                "-ExecutionPolicy",
-                "Bypass",
-                "-File",
-                ".claude/serve.ps1"
-            ],
-            "port": 4174
-        },
-        {
-            "name": "casa-vista",
-            "runtimeExecutable": "python3",
-            "runtimeArgs": [
-                "-m",
-                "http.server",
-                "4180",
-                "--directory",
-                "/Users/bernardogramaxo/00.Home/WEBSITES/CASA VISTA"
-            ],
-            "port": 4180
         }
     ]
 }

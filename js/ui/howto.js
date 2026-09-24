@@ -3,124 +3,176 @@ window.Game = window.Game || {};
 /* =============================================================================
    HOW TO PLAY
    -----------------------------------------------------------------------------
-   One mechanic per screen, each one played out on a small board rather than
-   described. Six screens: dropping, merging, chains, the seam, dynamite, the
-   star. Dots below, a cross to leave.
+   One idea a page, played out on a small grid of the game's own pieces over
+   the game dimmed behind it: dropping, three making one, chains, numbers
+   falling in, the bomb, infinity, and the climb to 35. Whatever merges or
+   blows up breaks apart exactly as it does in the game (js/ui/shatter.js).
+   A few words a page, in the game's square letters: the grid shows the rest.
 
-   The boards are frames of real piece ids drawn with the real icons, so the
-   tutorial cannot drift away from the game - change a piece's art and this
-   changes with it.
+   Tap anywhere, or Next, to go on; the cross, or Play on the last page, to
+   leave. It opens by itself the first time the game is ever played, and after
+   that only from the ? button.
+
+   The boards are frames of real piece ids drawn with the real art, so the
+   tutorial cannot drift away from the game — change a piece and this changes
+   with it.
    ============================================================================= */
 
 (function () {
-    var COLS = 5;
-    var ROWS = 4;
-    var CELLS = COLS * ROWS;
+    var SEEN = "thirtyfive.tutorial";
 
     var host = null;
     var stage = null;
     var titleEl = null;
     var lineEl = null;
-    var dotsEl = null;
+    var stepsEl = null;
+    var nextEl = null;
     var cells = [];
+    var shown = null;
 
     var at = 0;
     var frame = 0;
     var timer = null;
 
-    // a board state is { index: pieceId }, anything absent is an empty square
-    function board(map, pop, lit) {
-        return { map: map || {}, pop: pop || [], lit: lit || [] };
+    /* A board is { index: pieceId }; anything absent is an empty square.
+       `lit` rings pieces arriving or being tapped; `go` rings pieces about to
+       go — and whatever is ringed to go breaks apart as the next frame comes. */
+    function board(map, lit, go) {
+        return { map: map || {}, lit: lit || [], go: go || [] };
     }
+
+    function plus(map, extra) {
+        var out = {};
+        Object.keys(map).forEach(function (k) { out[k] = map[k]; });
+        Object.keys(extra).forEach(function (k) { out[k] = extra[k]; });
+        return out;
+    }
+
+    // the whole ladder, one number at a time
+    function ladder() {
+        var frames = [board()];
+        var map = {};
+        for (var n = 1; n <= 35; n++) {
+            map = plus(map, {});
+            map[n - 1] = "n" + n;
+            frames.push(board(map, [n - 1]));
+        }
+        frames.push(board(map));
+        return frames;
+    }
+
+    var FLOOR_2 = { 16: "n1", 17: "n1" };
+    var CHAIN = { 15: "n2", 16: "n2", 17: "n1", 18: "n1" };
+    var BOMB = { 13: "n2", 14: "n2", 15: "n1", 16: "n1", 18: "bomb", 19: "n3" };
+    var INF = { 10: "n3", 13: "n3", 15: "n1", 16: "n1", 18: "infinity", 19: "n3" };
 
     var PAGES = [
         {
-            title: "Drop a piece",
-            line: "You only ever choose the column. It falls to the bottom.",
+            title: "Drop",
+            line: "Tap a column to drop your number.",
+            hold: 480,
+            frames: [
+                board(),
+                board({ 2: "n1" }, [2]),
+                board({ 7: "n1" }, [7]),
+                board({ 12: "n1" }, [12]),
+                board({ 17: "n1" }),
+                board({ 17: "n1", 4: "n2" }, [4]),
+                board({ 17: "n1", 9: "n2" }, [9]),
+                board({ 17: "n1", 14: "n2" }, [14]),
+                board({ 17: "n1", 19: "n2" }),
+                board({ 17: "n1", 19: "n2" })
+            ]
+        },
+        {
+            title: "Merge",
+            line: "Three alike make the next number.",
             hold: 520,
             frames: [
-                board({ 2: "dirt" }, [], [2]),
-                board({ 7: "dirt" }, [], [7]),
-                board({ 12: "dirt" }, [], [12]),
-                board({ 17: "dirt" }),
-                board({ 17: "dirt" })
+                board(FLOOR_2),
+                board(plus(FLOOR_2, { 3: "n1" }), [3]),
+                board(plus(FLOOR_2, { 8: "n1" }), [8]),
+                board(plus(FLOOR_2, { 13: "n1" }), [13]),
+                board(plus(FLOOR_2, { 18: "n1" })),
+                board(plus(FLOOR_2, { 18: "n1" }), [], [16, 17, 18]),
+                board({ 17: "n2" }, [17]),
+                board({ 17: "n2" })
             ]
         },
         {
-            title: "Three of a kind, touching",
-            line: "Three that touch become one, a rung up the ladder.",
-            hold: 560,
-            frames: [
-                board({ 16: "dirt", 17: "dirt" }),
-                board({ 3: "dirt", 16: "dirt", 17: "dirt" }, [], [3]),
-                board({ 13: "dirt", 16: "dirt", 17: "dirt" }, [], [13]),
-                board({ 16: "dirt", 17: "dirt", 18: "dirt" }),
-                board({ 16: "dirt", 17: "dirt", 18: "dirt" }, [16, 17, 18]),
-                board({ 17: "rock" }, [], [17]),
-                board({ 17: "rock" })
-            ]
-        },
-        {
-            title: "One merge sets off the next",
-            line: "What a run hands back can finish another. That is a chain, and it pays more each link.",
+            title: "Chain",
+            line: "Merges can chain. Each link scores more.",
             hold: 520,
             frames: [
-                board({ 15: "rock", 16: "rock", 17: "dirt", 18: "dirt" }),
-                board({ 4: "dirt", 15: "rock", 16: "rock", 17: "dirt", 18: "dirt" }, [], [4]),
-                board({ 9: "dirt", 15: "rock", 16: "rock", 17: "dirt", 18: "dirt" }, [], [9]),
-                board({ 14: "dirt", 15: "rock", 16: "rock", 17: "dirt", 18: "dirt" }, [], [14]),
-                board({ 15: "rock", 16: "rock", 17: "dirt", 18: "dirt", 19: "dirt" }),
-                board({ 15: "rock", 16: "rock", 17: "dirt", 18: "dirt", 19: "dirt" }, [17, 18, 19]),
-                board({ 15: "rock", 16: "rock", 17: "rock" }, [], [17]),
-                board({ 15: "rock", 16: "rock", 17: "rock" }, [15, 16, 17]),
-                board({ 15: "coal" }, [], [15]),
-                board({ 15: "coal" })
+                board(CHAIN),
+                board(plus(CHAIN, { 4: "n1" }), [4]),
+                board(plus(CHAIN, { 9: "n1" }), [9]),
+                board(plus(CHAIN, { 14: "n1" }), [14]),
+                board(plus(CHAIN, { 19: "n1" })),
+                board(plus(CHAIN, { 19: "n1" }), [], [17, 18, 19]),
+                board({ 15: "n2", 16: "n2", 17: "n2" }, [17]),
+                board({ 15: "n2", 16: "n2", 17: "n2" }, [], [15, 16, 17]),
+                board({ 15: "n3" }, [15]),
+                board({ 15: "n3" })
             ]
         },
         {
-            title: "The seam gives way",
-            line: "Every few drops, pieces fall in on their own - into columns you did not pick.",
+            title: "Incoming",
+            line: "Numbers drop in on their own. Keep room.",
+            hold: 520,
+            frames: [
+                board({ 16: "n1", 18: "n2" }),
+                board({ 1: "n3", 3: "n1", 16: "n1", 18: "n2" }, [1, 3]),
+                board({ 6: "n3", 8: "n1", 16: "n1", 18: "n2" }, [6, 8]),
+                board({ 11: "n3", 13: "n1", 16: "n1", 18: "n2" }, [11, 13]),
+                board({ 11: "n3", 13: "n1", 16: "n1", 18: "n2" }),
+                board({ 11: "n3", 13: "n1", 16: "n1", 18: "n2" })
+            ]
+        },
+        {
+            title: "Bomb",
+            line: "Merges charge the 0. Drop it. Merge next to it.",
             hold: 540,
             frames: [
-                board({ 16: "dirt", 18: "rock" }),
-                board({ 1: "coal", 3: "dirt", 16: "dirt", 18: "rock" }, [], [1, 3]),
-                board({ 6: "coal", 8: "dirt", 16: "dirt", 18: "rock" }, [], [6, 8]),
-                board({ 11: "coal", 13: "dirt", 16: "dirt", 18: "rock" }, [], [11, 13]),
-                board({ 11: "coal", 13: "dirt", 16: "dirt", 18: "rock" }),
-                board({ 11: "coal", 13: "dirt", 16: "dirt", 18: "rock" })
+                board(BOMB),
+                board(plus(BOMB, { 2: "n1" }), [2]),
+                board(plus(BOMB, { 7: "n1" }), [7]),
+                board(plus(BOMB, { 12: "n1" }), [12]),
+                board(plus(BOMB, { 17: "n1" })),
+                board(plus(BOMB, { 17: "n1" }), [18], [15, 16, 17]),
+                board({ 13: "n2", 14: "n2", 16: "n2", 18: "bomb", 19: "n3" }, [18]),
+                board({ 13: "n2", 14: "n2", 16: "n2", 18: "bomb", 19: "n3" }, [], [13, 14, 18, 19]),
+                board({ 16: "n2" }),
+                board({ 16: "n2" })
             ]
         },
         {
-            title: "Dynamite is the way out",
-            line: "It joins nothing. A merge landing beside it sets it off, and the eight squares around it go with it.",
+            title: "Infinity",
+            line: "Merge next to it. Pick a number. All of them go.",
             hold: 560,
             frames: [
-                board({ 13: "rock", 14: "rock", 15: "dirt", 16: "dirt", 18: "dynamite", 19: "coal" }),
-                board({ 2: "dirt", 13: "rock", 14: "rock", 15: "dirt", 16: "dirt", 18: "dynamite", 19: "coal" }, [], [2]),
-                board({ 12: "dirt", 13: "rock", 14: "rock", 15: "dirt", 16: "dirt", 18: "dynamite", 19: "coal" }, [], [12]),
-                board({ 13: "rock", 14: "rock", 15: "dirt", 16: "dirt", 17: "dirt", 18: "dynamite", 19: "coal" }),
-                board({ 13: "rock", 14: "rock", 15: "dirt", 16: "dirt", 17: "dirt", 18: "dynamite", 19: "coal" }, [15, 16, 17], [18]),
-                board({ 13: "rock", 14: "rock", 16: "rock", 18: "dynamite", 19: "coal" }, [], [18]),
-                board({ 13: "rock", 14: "rock", 16: "rock", 18: "dynamite", 19: "coal" }, [13, 14, 18, 19]),
-                board({ 16: "rock" }),
-                board({ 16: "rock" })
+                board(INF),
+                board(plus(INF, { 2: "n1" }), [2]),
+                board(plus(INF, { 7: "n1" }), [7]),
+                board(plus(INF, { 12: "n1" }), [12]),
+                board(plus(INF, { 17: "n1" })),
+                board(plus(INF, { 17: "n1" }), [18], [15, 16, 17]),
+                board({ 10: "n3", 13: "n3", 15: "n2", 18: "infinity", 19: "n3" }, [], [18]),
+                board({ 10: "n3", 15: "n2", 18: "n3", 19: "n3" }),
+                board({ 10: "n3", 15: "n2", 18: "n3", 19: "n3" }, [18]),
+                board({ 10: "n3", 15: "n2", 18: "n3", 19: "n3" }, [], [10, 18, 19]),
+                board({ 15: "n2" }),
+                board({ 15: "n2" })
             ]
         },
         {
-            title: "A star draws out a kind",
-            line: "Stars fall in now and then. Blow one up, tap a piece, and every one like it goes.",
-            hold: 560,
-            frames: [
-                board({ 10: "dirt", 11: "coal", 13: "coal", 15: "coal", 16: "dirt", 17: "rock", 18: "dynamite", 19: "lodestone" }),
-                board({ 10: "dirt", 11: "coal", 13: "coal", 15: "coal", 16: "dirt", 17: "rock", 18: "dynamite", 19: "lodestone" }, [], [18]),
-                board({ 10: "dirt", 11: "coal", 13: "coal", 15: "coal", 16: "dirt", 17: "rock", 18: "dynamite", 19: "lodestone" }, [13, 17, 18, 19]),
-                board({ 10: "dirt", 11: "coal", 15: "coal", 16: "dirt" }),
-                board({ 10: "dirt", 11: "coal", 15: "coal", 16: "dirt" }, [], [11]),
-                board({ 10: "dirt", 11: "coal", 15: "coal", 16: "dirt" }, [], [11, 15]),
-                board({ 10: "dirt", 11: "coal", 15: "coal", 16: "dirt" }, [11, 15]),
-                board({ 15: "dirt", 16: "dirt" }),
-                board({ 15: "dirt", 16: "dirt" })
-            ]
+            title: "Reach 35",
+            line: "Grid full, game over. Beat your best.",
+            cols: 7,
+            rows: 5,
+            hold: 70,
+            last: 2600,
+            frames: ladder()
         }
     ];
 
@@ -129,61 +181,89 @@ window.Game = window.Game || {};
         if (!host) return false;
 
         host.innerHTML =
+            '<button type="button" class="how__shut" id="howShut" data-icon="close" ' +
+            'aria-label="Close"></button>' +
             '<div class="how__card" role="dialog" aria-modal="true" aria-label="How to play">' +
-            '<button type="button" class="how__shut" id="howShut" aria-label="Close">' +
-            '<span aria-hidden="true">×</span></button>' +
             '<div class="how__stage" id="howStage"></div>' +
-            '<h2 class="how__title" id="howTitle"></h2>' +
-            '<p class="how__line" id="howLine"></p>' +
-            '<div class="how__dots" id="howDots"></div>' +
+            '<h2 class="how__title words" id="howTitle"></h2>' +
+            '<p class="how__line words" id="howLine"></p>' +
+            '<div class="how__steps" id="howSteps"></div>' +
+            '<button type="button" class="how__next words" id="howNext"></button>' +
             "</div>";
+
+        Game.Icons.hydrate(host);
 
         stage = document.getElementById("howStage");
         titleEl = document.getElementById("howTitle");
         lineEl = document.getElementById("howLine");
-        dotsEl = document.getElementById("howDots");
-
-        cells = [];
-        for (var i = 0; i < CELLS; i++) {
-            var cell = document.createElement("span");
-            cell.className = "how__cell";
-            stage.appendChild(cell);
-            cells.push(cell);
-        }
-        stage.style.setProperty("--how-cols", COLS);
+        stepsEl = document.getElementById("howSteps");
+        nextEl = document.getElementById("howNext");
 
         for (var d = 0; d < PAGES.length; d++) {
-            var dot = document.createElement("button");
-            dot.type = "button";
-            dot.className = "how__dot";
-            dot.setAttribute("aria-label", "Step " + (d + 1));
-            dot.dataset.to = d;
-            dotsEl.appendChild(dot);
+            var step = document.createElement("button");
+            step.type = "button";
+            step.className = "how__step";
+            step.setAttribute("aria-label", "Page " + (d + 1));
+            step.dataset.to = d;
+            stepsEl.appendChild(step);
         }
 
         host.addEventListener("click", function (event) {
             if (event.target.closest("#howShut")) return Game.HowTo.close();
 
-            var dot = event.target.closest(".how__dot");
-            if (dot) return show(Number(dot.dataset.to));
+            var step = event.target.closest(".how__step");
+            if (step) return show(Number(step.dataset.to));
 
-            // tapping the picture moves on, which is how everyone tries it first
-            if (event.target.closest(".how__stage")) {
-                return show((at + 1) % PAGES.length);
-            }
-            if (!event.target.closest(".how__card")) Game.HowTo.close();
+            // Next, or a tap anywhere else, moves on; the last page lets go
+            if (at === PAGES.length - 1) return Game.HowTo.close();
+            show(at + 1);
         });
 
         return true;
     }
 
+    /* the grid for a page: as many squares as it asks for */
+    function lay(page) {
+        var cols = page.cols || 5;
+        var count = cols * (page.rows || 4);
+
+        stage.style.setProperty("--how-cols", cols);
+        if (cells.length === count) return;
+
+        stage.innerHTML = "";
+        cells = [];
+        for (var i = 0; i < count; i++) {
+            var cell = document.createElement("span");
+            cell.className = "how__cell";
+            stage.appendChild(cell);
+            cells.push(cell);
+        }
+        shown = null;
+    }
+
+    function tintOf(id) {
+        var piece = Game.Pieces.byId(id);
+        return piece ? piece.tint : "";
+    }
+
     function paint(state) {
-        for (var i = 0; i < CELLS; i++) {
+        // whatever was ringed to go, and has gone, breaks apart first — while
+        // its square still wears its colour
+        if (shown) {
+            shown.go.forEach(function (i) {
+                var was = shown.map[i];
+                if (was && state.map[i] !== was && Game.Shatter) {
+                    Game.Shatter.tile(cells[i], was, 0.55);
+                }
+            });
+        }
+
+        for (var i = 0; i < cells.length; i++) {
             var id = state.map[i];
             var cell = cells[i];
             var next = "how__cell" +
-                (id ? " is-full" : "") +
-                (state.pop.indexOf(i) !== -1 ? " is-going" : "") +
+                (id ? " is-full " + tintOf(id) : "") +
+                (state.go.indexOf(i) !== -1 ? " is-going" : "") +
                 (state.lit.indexOf(i) !== -1 ? " is-lit" : "");
 
             if (cell.className !== next) cell.className = next;
@@ -191,14 +271,11 @@ window.Game = window.Game || {};
             var want = id || "";
             if (cell.dataset.piece !== want) {
                 cell.dataset.piece = want;
-                cell.innerHTML = id ? Game.Icons.svg(pieceIcon(id)) : "";
+                var piece = id && Game.Pieces.byId(id);
+                cell.innerHTML = piece ? Game.Icons.svg(piece.icon) : "";
             }
         }
-    }
-
-    function pieceIcon(id) {
-        var piece = Game.Pieces.byId(id);
-        return piece ? piece.icon : id;
+        shown = state;
     }
 
     function run() {
@@ -209,8 +286,9 @@ window.Game = window.Game || {};
         var last = frame === page.frames.length - 1;
         timer = window.setTimeout(function () {
             frame = (frame + 1) % page.frames.length;
+            if (frame === 0) shown = null;
             run();
-        }, last ? page.hold * 2 : page.hold);
+        }, last ? (page.last || page.hold * 3) : page.hold);
     }
 
     function show(index) {
@@ -218,12 +296,16 @@ window.Game = window.Game || {};
         frame = 0;
 
         var page = PAGES[at];
-        titleEl.textContent = page.title;
-        lineEl.textContent = page.line;
+        lay(page);
+        shown = null;
 
-        var dots = dotsEl.children;
-        for (var i = 0; i < dots.length; i++) {
-            dots[i].classList.toggle("is-here", i === at);
+        titleEl.innerHTML = Game.Icons.words(page.title);
+        lineEl.innerHTML = Game.Icons.words(page.line);
+        nextEl.innerHTML = Game.Icons.words(at === PAGES.length - 1 ? "Play" : "Next");
+
+        var steps = stepsEl.children;
+        for (var i = 0; i < steps.length; i++) {
+            steps[i].classList.toggle("is-here", i === at);
         }
         run();
     }
@@ -231,8 +313,8 @@ window.Game = window.Game || {};
     function keys(event) {
         if (!host || !host.classList.contains("is-open")) return;
         if (event.key === "Escape") return Game.HowTo.close();
-        if (event.key === "ArrowRight") return show((at + 1) % PAGES.length);
-        if (event.key === "ArrowLeft") return show((at + PAGES.length - 1) % PAGES.length);
+        if (event.key === "ArrowRight") return show(Math.min(PAGES.length - 1, at + 1));
+        if (event.key === "ArrowLeft") return show(Math.max(0, at - 1));
     }
 
     Game.HowTo = {
@@ -248,6 +330,12 @@ window.Game = window.Game || {};
             window.clearTimeout(timer);
             host.classList.remove("is-open");
             document.removeEventListener("keydown", keys);
+            Game.Storage.write(SEEN, { seen: true });
+        },
+
+        // the first time the game is ever played, it explains itself
+        firstTime: function () {
+            if (!Game.Storage.read(SEEN)) this.open();
         }
     };
 })();

@@ -1,7 +1,7 @@
 window.Game = window.Game || {};
 
 (function () {
-    var KEY = "gridoffortune.sound";
+    var KEY = "thirtyfive.sound";
 
     var ctx = null;
     var master = null;
@@ -234,12 +234,6 @@ window.Game = window.Game || {};
             Game.Events.on("game:over", over);
 
             button();
-        },
-
-        button: button,
-
-        on: function () {
-            return on;
         }
     };
 })();

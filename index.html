@@ -5,62 +5,49 @@
         <meta name="viewport"
               content="width=device-width, initial-scale=1, maximum-scale=1,
                        user-scalable=no, viewport-fit=cover" />
-        <title>Grid of Fortune</title>
+        <title>35</title>
 
         <link rel="stylesheet" href="css/theme.css" />
         <link rel="stylesheet" href="css/components.css" />
         <link rel="stylesheet" href="css/game.css" />
         <link rel="stylesheet" href="css/charges.css" />
         <link rel="stylesheet" href="css/backdrop.css" />
+        <link rel="stylesheet" href="css/numbers.css" />
     </head>
     <body class="game">
         <div class="backdrop" id="backdrop" aria-hidden="true"></div>
 
-        <button
-            class="back"
-            id="backBtn"
-            type="button"
-            data-icon="back"
-            aria-label="Back to menu"
-        ></button>
+        <nav class="tools" aria-label="Game">
+            <button class="tool" id="howBtn" type="button" data-icon="help"
+                    aria-label="How to play"></button>
+            <button class="tool" type="button" data-sound aria-label="Sound"></button>
+            <button class="tool" id="restartBtn" type="button" data-icon="restart"
+                    aria-label="Start over" data-confirm="Tap again to start over"></button>
+        </nav>
 
         <main class="table">
-            <div class="scoreboard" id="scoreboard" aria-live="off">
-                <span class="scoreboard__value">0</span>
-                <span class="scoreboard__best"></span>
-            </div>
+            <div class="stage">
+                <div class="scoreboard" id="scoreboard" aria-live="off">
+                    <span class="scoreboard__value"></span>
+                    <span class="scoreboard__best"></span>
+                </div>
 
-            <div class="board" id="board" aria-label="Board"></div>
+                <div class="board" id="board" aria-label="Board"></div>
 
-            <div class="tray">
-                <div class="hand" id="hand"></div>
+                <div class="tray">
+                    <div class="hand" id="hand"></div>
 
-                <button class="dial dial--bomb" id="bombDial" type="button" disabled
-                        data-charge="bomb" data-tint="#c2705f" data-lit="#dd9585"
-                        aria-label="Take a stick of dynamite">
-                    <canvas class="dial__ink"></canvas>
-                    <span class="dial__mark" data-icon="dynamite"></span>
-                </button>
+                    <button class="dial dial--bomb" id="bombDial" type="button" disabled
+                            data-charge="bomb" data-lit="#2d2a2e"
+                            aria-label="Take a bomb">
+                        <canvas class="dial__ink"></canvas>
+                        <span class="dial__mark" data-icon="n0"></span>
+                    </button>
+                </div>
             </div>
         </main>
 
-        <button
-            class="rungs"
-            id="rungsBtn"
-            type="button"
-            data-icon="ladder"
-            aria-label="What can be made"
-        ></button>
-
-        <div class="sheet" id="sheet">
-            <div class="sheet__card">
-                <span class="sheet__title">What can be made</span>
-                <ol class="track" id="track" aria-label="What can be made"></ol>
-            </div>
-        </div>
-
         <div class="how" id="how"></div>
-        <div class="menu" id="menu"></div>
         <div class="over" id="over"></div>
 
         <script src="js/core/config.js"></script>
@@ -74,10 +61,9 @@
         <script src="js/systems/charges.js"></script>
 
         <script src="js/ui/icons.js"></script>
-        <script src="js/ui/liveart.js"></script>
         <script src="js/ui/sound.js"></script>
         <script src="js/ui/toast.js"></script>
-        <script src="js/ui/sparks.js"></script>
+        <script src="js/ui/shatter.js"></script>
         <script src="js/ui/effects.js"></script>
         <script src="js/ui/boardview.js"></script>
         <script src="js/ui/howto.js"></script>
@@ -85,7 +71,6 @@
         <script src="js/ui/scoreview.js"></script>
         <script src="js/ui/chargeview.js"></script>
         <script src="js/ui/backdrop.js"></script>
-        <script src="js/ui/vibe.js"></script>
 
         <script src="js/pages/game.js"></script>
     </body>
