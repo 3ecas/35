@@ -148,6 +148,15 @@ window.Game = window.Game || {};
         return (560 + Math.random() * 1150) * force;
     }
 
+    // how fast a piece turns, either way round: most tumble slowly, and some
+    // spin fast, so the air never turns all at one rate
+    function spinOf() {
+        var speed = Math.random() < 0.35
+            ? 9 + Math.random() * 16
+            : 0.5 + Math.random() * 3;
+        return Math.random() < 0.5 ? -speed : speed;
+    }
+
     function tileBreaks(tile, piece, force) {
         var box = tile.getBoundingClientRect();
         if (!box.width) return;
@@ -193,8 +202,8 @@ window.Game = window.Game || {};
                             x: x, y: y,
                             vx: Math.cos(aim) * speed,
                             vy: Math.sin(aim) * speed - 260 * force,
-                            turn: 0,
-                            spin: (Math.random() - 0.5) * 16 * (1 + (parts - 1) * 0.35),
+                            turn: Math.random() * 0.6 - 0.3,
+                            spin: spinOf() * (1 + (parts - 1) * 0.2),
                             age: 0,
                             life: 1 + Math.random() * 0.6
                         });
@@ -213,6 +222,8 @@ window.Game = window.Game || {};
                 vx: Math.cos(angle) * fast,
                 vy: Math.sin(angle) * fast - 120,
                 r: 0.7 + Math.random() * 3.5,
+                turn: Math.random() * Math.PI,
+                spin: spinOf(),
                 colour: colours[Math.floor(Math.random() * colours.length)],
                 age: 0,
                 life: 0.45 + Math.random() * 0.55
@@ -256,7 +267,6 @@ window.Game = window.Game || {};
                           b.w * shrink, b.h * shrink);
         }
 
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         var slow = Math.pow(0.18, gap);
         for (var k = motes.length - 1; k >= 0; k--) {
             var m = motes[k];
@@ -269,12 +279,16 @@ window.Game = window.Game || {};
             m.vy = m.vy * slow + GRAVITY * 0.35 * gap;
             m.x += m.vx * gap;
             m.y += m.vy * gap;
+            m.turn += m.spin * gap;
 
             var fade = 1 - m.age / m.life;
             var side = m.r * (1 + fade);
+            var mc = Math.cos(m.turn) * dpr;
+            var ms = Math.sin(m.turn) * dpr;
             ctx.globalAlpha = fade;
             ctx.fillStyle = m.colour;
-            ctx.fillRect(m.x - side / 2, m.y - side / 2, side, side);
+            ctx.setTransform(mc, ms, -ms, mc, m.x * dpr, m.y * dpr);
+            ctx.fillRect(-side / 2, -side / 2, side, side);
         }
 
         ctx.globalAlpha = 1;

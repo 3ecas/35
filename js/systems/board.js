@@ -16,6 +16,18 @@ window.Game = window.Game || {};
         });
     }
 
+    /* How recently a piece arrived where it is, which decides where a merge
+       it is part of happens: 2 for the piece just dropped, fallen in, or made
+       by a merge; 1 for a piece the last settling moved; 0 for the rest. */
+    var LANDED = 2;
+    var MOVED = 1;
+
+    function unmark() {
+        cells.forEach(function (cell) {
+            cell.fresh = 0;
+        });
+    }
+
     function fall() {
         var moves = [];
 
@@ -27,6 +39,7 @@ window.Game = window.Game || {};
                     stack.push({
                         piece: cell.piece,
                         fuse: cell.fuse || 0,
+                        fresh: cell.fresh || 0,
                         id: cell.id,
                         y: cell.y
                     });
@@ -37,11 +50,13 @@ window.Game = window.Game || {};
             for (var y2 = rows - 1; y2 >= 0; y2--, i++) {
                 var target = at(x, y2);
                 var item = i < stack.length ? stack[i] : null;
+                var moved = !!item && item.id !== target.id;
 
                 target.piece = item ? item.piece : null;
                 target.fuse = item ? item.fuse : 0;
+                target.fresh = item ? Math.max(item.fresh, moved ? MOVED : 0) : 0;
 
-                if (item && item.id !== target.id) {
+                if (moved) {
                     moves.push({
                         to: target.id,
                         distance: target.y - item.y
@@ -57,11 +72,13 @@ window.Game = window.Game || {};
     // a merge sets off beside it.
     var SIDES = [[0, -1], [-1, 0], [1, 0], [0, 1]];
 
+    /* every piece like `start` joined to it, nearest first, each with how
+       many steps it is from `start` in `steps` */
     function reach(start, need) {
         var found = [start];
-        var seen = {};
+        var steps = {};
         var queue = [start];
-        seen[start.id] = true;
+        steps[start.id] = 0;
 
         while (queue.length) {
             var cell = queue.shift();
@@ -72,36 +89,61 @@ window.Game = window.Game || {};
 
             for (var i = 0; i < around.length; i++) {
                 var other = around[i];
-                if (!other || seen[other.id]) continue;
+                if (!other || steps[other.id] !== undefined) continue;
                 if (other.piece !== start.piece) continue;
 
-                seen[other.id] = true;
+                steps[other.id] = steps[cell.id] + 1;
                 found.push(other);
                 queue.push(other);
             }
         }
 
-        return found.length >= need ? found : null;
+        if (found.length < need) return null;
+        found.steps = steps;
+        return found;
     }
 
+    /* The next group of three or more to merge, and where. The merge starts
+       at the piece that arrived last — the one just dropped, or just made by
+       the merge before — and runs through the rest to the far end, and the
+       new number appears on the far one: the piece most steps away, the
+       lowest and then leftmost of those if several are. A group with a newer
+       piece in it goes first. `eat` comes back far end first. */
     function nextGroup() {
         var need = Game.Config.game.mergeAt || 3;
+        var best = null;
+        var done = {};
 
         for (var y = rows - 1; y >= 0; y--) {
             for (var x = 0; x < cols; x++) {
                 var cell = at(x, y);
-                if (!cell.piece) continue;
+                if (!cell.piece || done[cell.id]) continue;
 
                 var piece = Game.Pieces.byId(cell.piece);
                 if (!piece || !piece.tier) continue;
 
                 var taking = reach(cell, need);
-                if (taking) {
-                    return { keep: cell, eat: taking, piece: piece };
+                if (!taking) continue;
+
+                var lead = taking[0];
+                taking.forEach(function (one) {
+                    done[one.id] = true;
+                    if ((one.fresh || 0) > (lead.fresh || 0)) lead = one;
+                });
+
+                if (!best || (lead.fresh || 0) > (best.keep.fresh || 0)) {
+                    best = { keep: lead, piece: piece };
                 }
             }
         }
-        return null;
+
+        if (!best) return null;
+
+        var eat = reach(best.keep, need);
+        eat.sort(function (a, b) {
+            return (eat.steps[b.id] - eat.steps[a.id]) || (b.y - a.y) || (a.x - b.x);
+        });
+        return { keep: eat[0], eat: eat, piece: best.piece };
     }
 
     /* the cells on the four sides of any of `cells` holding `pieceId`, once each */
@@ -242,6 +284,7 @@ window.Game = window.Game || {};
                         times
                 );
 
+                unmark();
                 pair.eat.forEach(function (cell) {
                     cell.piece = null;
                 });
@@ -262,15 +305,16 @@ window.Game = window.Game || {};
                 sparked = touchOff(pair.eat);
                 if (sparked) steps.push(sparked);
             } else {
+                // every full three that join make one of the next number:
+                // three, four or five make one, six make two — on the far
+                // ones, farthest first
                 var grown = Game.Pieces.byId(pair.piece.next);
+                var makes = Math.floor(pair.eat.length / (over.mergeAt || 3));
 
-                var makes = 1;
-                if (over.surplusStays) {
-                    makes = Math.max(1, pair.eat.length - ((over.mergeAt || 3) - 1));
-                }
-
+                unmark();
                 pair.eat.forEach(function (cell, i) {
                     cell.piece = i < makes ? grown.id : null;
+                    cell.fresh = i < makes ? LANDED : 0;
                 });
 
                 steps.push({
@@ -286,7 +330,6 @@ window.Game = window.Game || {};
                     lit: lit,
                     chain: chain,
                     times: times,
-                    makes: makes,
                     points: Math.round(
                         (pair.piece.points || 0) * pair.eat.length * times
                     ),
@@ -323,6 +366,7 @@ window.Game = window.Game || {};
 
     /* bombs going off outside a merge: the blast, then the board settles */
     function setOff(lit) {
+        unmark();
         return report(resolve([wreck(lit)]));
     }
 
@@ -373,7 +417,8 @@ window.Game = window.Game || {};
                         x: x,
                         y: y,
                         piece: null,
-                        fuse: 0
+                        fuse: 0,
+                        fresh: 0
                     });
                 }
             }
@@ -393,6 +438,7 @@ window.Game = window.Game || {};
         sweep: function (pieceId) {
             if (owed <= 0) return null;
             owed -= 1;
+            unmark();
 
             var worth = 0;
             var pulled = [];
@@ -456,21 +502,6 @@ window.Game = window.Game || {};
             return Math.min(1, (cell.fuse || 0) / limit);
         },
 
-        spacedFrom: function (column, pieceId, gap) {
-            var spot = this.landing(column);
-            if (!spot) return false;
-            if (!gap) return true;
-
-            for (var i = 0; i < cells.length; i++) {
-                var cell = cells[i];
-                if (cell.piece !== pieceId) continue;
-                var dx = Math.abs(cell.x - spot.x);
-                var dy = Math.abs(cell.y - spot.y);
-                if (Math.max(dx, dy) < gap) return false;
-            }
-            return true;
-        },
-
         wouldJoin: function (column, pieceId) {
             var spot = this.landing(column);
             if (!spot) return false;
@@ -493,6 +524,7 @@ window.Game = window.Game || {};
             cells.forEach(function (cell, i) {
                 var id = snapshot[i];
                 cell.piece = id && Game.Pieces.byId(id) ? id : null;
+                cell.fresh = 0;
             });
             return true;
         },
@@ -501,8 +533,10 @@ window.Game = window.Game || {};
             var spot = this.landing(column);
             if (!spot) return null;
 
+            unmark();
             spot.piece = pieceId;
             spot.fuse = 0;
+            spot.fresh = LANDED;
 
             var steps = [
                 {

@@ -29,12 +29,14 @@ window.Game = window.Game || {};
     function snapshotGame() {
         return {
             score: state.score,
+            bomb: state.bomb,
             placed: state.placed,
             tally: state.tally,
             highest: state.highest,
             sinceFall: state.sinceFall,
             runId: state.runId,
             runLen: state.runLen,
+            lastInfinity: state.lastInfinity,
             hand: state.hand.map(function (piece) { return piece.id; }),
             board: Game.Board.snapshot()
         };
@@ -50,6 +52,12 @@ window.Game = window.Game || {};
         held = null;
         writeSave(null);
     }
+
+    // the bomb dial's charge goes wherever the run goes, so a run picked up
+    // again has the charge it was put down with
+    Game.Events.on("charge:change", function (detail) {
+        if (state && detail.name === "bomb") state.bomb = detail.charge;
+    });
 
     function nextDeal() {
         var most = settings().sameInRow || 0;
@@ -82,10 +90,14 @@ window.Game = window.Game || {};
         }
     }
 
-    function infinityNow() {
+    /* infinity's turn: past infinityFrom points, none on the board, and
+       none yet this run or infinityEvery drops since the last one fell */
+    function infinityDue() {
         var s = settings();
         if (state.score < s.infinityFrom) return false;
-        return Math.random() < s.infinityChance;
+        if (Game.Board.snapshot().indexOf(Game.Pieces.infinity.id) !== -1) return false;
+        return state.lastInfinity === null ||
+            state.placed - state.lastInfinity >= s.infinityEvery;
     }
 
     function seam() {
@@ -93,7 +105,7 @@ window.Game = window.Game || {};
         var found = null;
 
         for (var i = 0; i < table.length; i++) {
-            if (state.placed >= table[i].after) found = table[i];
+            if (state.highest >= table[i].from) found = table[i];
         }
 
         return found;
@@ -106,14 +118,7 @@ window.Game = window.Game || {};
 
     function fallCount() {
         var level = seam();
-        if (!level) return 0;
-
-        // fallFewer thins every fall by the same amount, so the pressure curve
-        // keeps its shape. A fall never drops nothing — that is what the gap
-        // between falls is for.
-        var s = settings();
-        var least = s.fallLeast || 1;
-        return Math.max(least, level.count - (s.fallFewer || 0));
+        return level ? level.count : 0;
     }
 
     function open() {
@@ -193,23 +198,18 @@ window.Game = window.Game || {};
             }
             if (!open.length) break;
 
-            var special = infinities < settings().infinityCap && infinityNow();
-            if (special) infinities++;
+            // one infinity at most in a fall, when it is due
+            var special = !infinities && infinityDue();
+            if (special) {
+                infinities++;
+                state.lastInfinity = state.placed;
+            }
 
             var piece = special
                 ? Game.Pieces.infinity
                 : Game.Pieces.randomFor(state.highest);
 
-            // infinity keeps its distance from any other on the board
-            var pool = open;
-            if (special) {
-                var apart = open.filter(function (col) {
-                    return Game.Board.spacedFrom(col, piece.id, settings().infinitySpacing);
-                });
-                if (apart.length) pool = apart;
-            }
-
-            pool = evened(pool);
+            var pool = evened(open);
 
             var where = pool[Math.floor(Math.random() * pool.length)];
             var result = Game.Board.drop(where, piece.id);
@@ -233,14 +233,17 @@ window.Game = window.Game || {};
         raise(result.made);
     }
 
-    /* What a move costs, either side of the pieces settling: it counts against
-       the seam table, and it brings the next fall closer. Anything that does
-       not spend a turn skips both halves. */
+    /* What a move costs, either side of the pieces settling: it counts as a
+       move of the run, and it brings the next fall closer. Anything that
+       does not spend a turn skips both halves. */
     function openTurn() {
         state.placed += 1;
     }
 
     function closeTurn() {
+        // no count kept before the falls begin, so the first comes a full
+        // gap after they do, not at once
+        if (!seam()) return;
         state.sinceFall += 1;
         if (state.sinceFall >= fallGap()) {
             state.sinceFall = 0;
@@ -371,6 +374,8 @@ window.Game = window.Game || {};
                 hand: [],
                 runId: null,
                 runLen: 0,
+                lastInfinity: null,
+                bomb: 0,
                 best: save.best,
                 found: save.found
             };
@@ -401,13 +406,15 @@ window.Game = window.Game || {};
                     .filter(Boolean),
                 runId: game.runId || null,
                 runLen: game.runLen || 0,
+                lastInfinity: typeof game.lastInfinity === "number" ? game.lastInfinity : null,
+                bomb: game.bomb || 0,
                 best: save.best,
                 found: save.found
             };
             fillHand();
             keep();
 
-            Game.Events.emit("game:started", {});
+            Game.Events.emit("game:started", { bomb: state.bomb });
             return true;
         },
 

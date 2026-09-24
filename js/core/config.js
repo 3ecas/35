@@ -17,25 +17,18 @@ Game.Config = {
         // the same piece is dealt at most this many times in a row
         sameInRow: 2,
 
-        // a run longer than three hands back all but two of itself, one rung up
-        surplusStays: true,
-
-        // the seam: after `after` drops, `count` pieces fall in every `every`
+        // The seam, paced by how far the run has climbed rather than by how
+        // long it has lasted: once the best number made reaches `from`,
+        // `count` pieces fall in every `every` drops. Nothing falls in below
+        // the first row; the last holds from 30 to the end of the run, 35
+        // and past it.
         falls: [
-            { after: 0, count: 2, every: 5 },
-            { after: 110, count: 3, every: 5 },
-            { after: 150, count: 3, every: 4 },
-            { after: 200, count: 2, every: 2 },
-            { after: 250, count: 4, every: 3 },
-            { after: 310, count: 3, every: 2 },
-            { after: 370, count: 2, every: 1 },
-            { after: 430, count: 3, every: 1 }
+            { from: 10, count: 1, every: 5 },
+            { from: 15, count: 1, every: 3 },
+            { from: 20, count: 2, every: 5 },
+            { from: 25, count: 2, every: 4 },
+            { from: 30, count: 3, every: 4 }
         ],
-
-        // Takes one piece off every count in the table above, keeping its
-        // shape. The extra play between falls is where the pressure the bomb
-        // and infinity take off the board is paid back. Negative adds pieces.
-        fallFewer: 1,
 
         // a fall never takes more than this share of the free squares, and
         // never less than fallLeast pieces
@@ -65,16 +58,17 @@ Game.Config = {
         // takes the eight squares around it and nothing further out.
         blastReach: 1,
 
-        // merges that fill the bomb dial — any merge, one for one
-        bombPace: 24,
+        // merges that fill the bomb dial: each merge your own moves make
+        // counts one, chains link by link; merges set off by pieces falling
+        // in, or by a blast, do not count
+        bombPace: 20,
 
-        // Infinity falls in with the seam, in place of a piece: past
-        // infinityFrom points, each falling piece has this chance of being
-        // one. It joins nothing; a merge beside it or a blast over it sets it
-        // off, and then you name a number and every one of them goes.
+        // Infinity falls in with the seam, in place of a piece: the first with
+        // the first fall once a run passes infinityFrom points, then one every
+        // infinityEvery drops — never while one is still on the board. It
+        // joins nothing; a merge beside it or a blast over it sets it off,
+        // and then you name a number and every one of them goes.
         infinityFrom: 6250,
-        infinityChance: 0.015,
-        infinityCap: 1,
-        infinitySpacing: 2
+        infinityEvery: 80
     }
 };

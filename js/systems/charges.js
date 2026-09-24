@@ -3,9 +3,10 @@ window.Game = window.Game || {};
 /* =============================================================================
    CHARGES
    -----------------------------------------------------------------------------
-   One dial beside the hand: the bomb. It fills on merges, any merge at all,
-   one for one, and pressing it puts a bomb — the 0 — in your hand to place.
-   It is the wage for showing up — a run of ordinary merges keeps it coming.
+   One dial beside the hand: the bomb. It fills on the merges your own moves
+   make, one for one, and pressing it puts a bomb — the 0 — in your hand to
+   place. It is the wage for showing up — a run of ordinary merges keeps it
+   coming. Its charge is part of the run, saved and picked up with it.
 
    The dial counts merges rather than points, and that is the whole trick.
    Points inflate — a merge at 34 is worth thousands of times a merge at 1,
@@ -35,9 +36,11 @@ window.Game = window.Game || {};
         return {
             name: name,
 
-            reset: function () {
-                charge = 0;
-                ready = false;
+            // `to` is where it starts: empty for a new run, or the charge a
+            // run had when it was put down
+            reset: function (to) {
+                charge = Math.max(0, Math.min(1, to || 0));
+                ready = charge >= 1;
                 tell();
             },
 
@@ -59,11 +62,20 @@ window.Game = window.Game || {};
             spend: function (cell) {
                 var state = Game.Round.get();
                 if (!ready || !state || !state.running) return false;
-                if (!spend(cell)) return false;
 
+                // emptied before the bomb goes down, so the run saved as it
+                // lands already has an empty dial — closing the app then
+                // cannot hand the same bomb back
                 ready = false;
                 charge = 0;
                 tell();
+
+                if (!spend(cell)) {
+                    ready = true;
+                    charge = 1;
+                    tell();
+                    return false;
+                }
                 return true;
             }
         };
@@ -142,9 +154,10 @@ window.Game = window.Game || {};
         },
 
         init: function () {
-            Game.Events.on("game:started", function () {
+            // a new run starts empty; a run picked up again brings its charge
+            Game.Events.on("game:started", function (detail) {
                 armed = null;
-                bomb.reset();
+                bomb.reset(detail.bomb);
             });
 
             Game.Events.on("board:steps", function (detail) {

@@ -10,18 +10,25 @@ bottom. One rule:
 
 > **Three of the same number, touching, become the next one up.**
 
-Three 1s make a 2, three 2s make a 3, all the way to 35. Whatever was above a
-merge falls into the gap, which can set off the next merge — a chain, and each
-link pays more. A run longer than three hands back all but two of itself, one
-number up.
+Three 1s make a 2, three 2s make a 3, all the way to 35. A merge starts at
+the piece that arrived last — the one you dropped, or the one the merge before
+made — and runs through the others to the far one, where the new number
+appears. Whatever was above a merge falls into the gap, which can set off the
+next merge — a chain, and each link pays more. Every full three that join
+make one: four or five of a kind still make one of the next number, six make
+two.
 
 The hand deals four numbers — the best you have made and the three under it —
 so the deal climbs with you; 34 and 35 are only built, never dealt, until the
 first 35 is made. From then on the deal is the last four, 32 to 35, for the
-rest of the run. Every few drops the seam gives way and pieces fall in on their
-own, into columns you did not pick. The run ends when the board is full.
+rest of the run. Once you make a 10 the seam starts to give way and pieces
+fall in on their own, into columns you did not pick — more of them, and more
+often, the higher you climb: one every five drops from 10, one every three from
+15, two every five from 20, two every four from 25, three every four from 30.
+The run ends when the board is full.
 
-**The bomb — the black 0.** The dial beside the hand fills with every merge.
+**The bomb — the black 0.** The dial beside the hand fills with the merges
+your moves make — twenty fill it — and keeps its charge if you leave mid-run.
 When it is full, tap it and pick a column to drop a bomb. It joins nothing; a
 merge beside it, or its own five-turn fuse, sets it off, and the eight squares
 around it go with it.

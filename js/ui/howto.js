@@ -61,6 +61,8 @@ window.Game = window.Game || {};
         return frames;
     }
 
+    // Every merge runs from the piece that arrived last to the far one, and
+    // the new number lands there — as it does in the game
     var FLOOR_2 = { 16: "n1", 17: "n1" };
     var CHAIN = { 15: "n2", 16: "n2", 17: "n1", 18: "n1" };
     var BOMB = { 13: "n2", 14: "n2", 15: "n1", 16: "n1", 18: "bomb", 19: "n3" };
@@ -95,8 +97,8 @@ window.Game = window.Game || {};
                 board(plus(FLOOR_2, { 13: "n1" }), [13]),
                 board(plus(FLOOR_2, { 18: "n1" })),
                 board(plus(FLOOR_2, { 18: "n1" }), [], [16, 17, 18]),
-                board({ 17: "n2" }, [17]),
-                board({ 17: "n2" })
+                board({ 16: "n2" }, [16]),
+                board({ 16: "n2" })
             ]
         },
         {
@@ -140,10 +142,10 @@ window.Game = window.Game || {};
                 board(plus(BOMB, { 12: "n1" }), [12]),
                 board(plus(BOMB, { 17: "n1" })),
                 board(plus(BOMB, { 17: "n1" }), [18], [15, 16, 17]),
-                board({ 13: "n2", 14: "n2", 16: "n2", 18: "bomb", 19: "n3" }, [18]),
-                board({ 13: "n2", 14: "n2", 16: "n2", 18: "bomb", 19: "n3" }, [], [13, 14, 18, 19]),
-                board({ 16: "n2" }),
-                board({ 16: "n2" })
+                board({ 13: "n2", 14: "n2", 15: "n2", 18: "bomb", 19: "n3" }, [18]),
+                board({ 13: "n2", 14: "n2", 15: "n2", 18: "bomb", 19: "n3" }, [], [13, 14, 18, 19]),
+                board({ 15: "n2" }),
+                board({ 15: "n2" })
             ]
         },
         {
