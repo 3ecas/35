@@ -319,21 +319,46 @@
     transform: scale(1.25);
 }
 
-.how__next {
+/* Next, and Skip beside it: the quieter of the two, and gone on the last
+   page, where Next says Play */
+.how__acts {
+    display: flex;
+    gap: 10px;
     margin-top: 4px;
+}
+
+.how__next,
+.how__skip {
     padding: 12px 30px;
     border: 2px solid #fff;
     background: transparent;
     color: #fff;
     font-size: 0.8rem;
     cursor: pointer;
-    transition: background 0.16s ease, color 0.16s ease;
+    transition: background 0.16s ease, color 0.16s ease,
+        border-color 0.16s ease;
 }
 
 .how__next:hover,
 .how__next:active {
     background: #fff;
     color: var(--ink);
+}
+
+.how__skip {
+    padding: 12px 22px;
+    border-color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.how__skip:hover,
+.how__skip:active {
+    border-color: #fff;
+    color: #fff;
+}
+
+.how__skip.is-gone {
+    display: none;
 }
 
 .tile.is-pickable {

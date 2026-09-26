@@ -13,8 +13,20 @@ document.addEventListener("DOMContentLoaded", function () {
     Game.Charges.init();
     Game.ChargeView.init();
 
-    // no menu: the run left off last time, or a new one
-    if (!Game.Round.resume()) Game.Round.start();
+    // No menu: the run left off last time, or a new one. The first time the
+    // game is ever played it explains itself before anything drops: the new
+    // run is set up behind how to play with its opening held, and the first
+    // 1 falls in once that is closed, skipped or played through.
+    Game.Events.on("howto:closed", function () {
+        Game.Round.release();
+    });
 
-    Game.HowTo.firstTime();
+    if (Game.Round.resume()) {
+        if (!Game.HowTo.seen()) Game.HowTo.open();
+    } else if (Game.HowTo.seen()) {
+        Game.Round.start();
+    } else {
+        Game.Round.start({ hold: true });
+        Game.HowTo.open();
+    }
 });

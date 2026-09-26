@@ -57,7 +57,10 @@ of the game's own pieces — dropping, three making one, chains, numbers falling
 in, the bomb, infinity, and the climb to 35 — with the same shattering as the
 game.
 It opens by itself the first time the game is played (remembered under
-`thirtyfive.tutorial` in `localStorage`), and after that from the ? button.
+`thirtyfive.tutorial` in `localStorage`), before anything drops: the run
+waits behind it, and the first 1 falls in once it is closed, skipped or
+played through. Skip sits beside Next on every page but the last. After that
+first time it opens only from the ? button.
 
 ## The look
 

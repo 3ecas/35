@@ -9,9 +9,10 @@ window.Game = window.Game || {};
    blows up breaks apart exactly as it does in the game (js/ui/shatter.js).
    A few words a page, in the game's square letters: the grid shows the rest.
 
-   Tap anywhere, or Next, to go on; the cross, or Play on the last page, to
-   leave. It opens by itself the first time the game is ever played, and after
-   that only from the ? button.
+   Tap anywhere, or Next, to go on; Skip, the cross, or Play on the last
+   page, to leave. It opens by itself the first time the game is ever played
+   — before the run's opening, which waits for it to close (js/pages/game.js)
+   — and after that only from the ? button.
 
    The boards are frames of real piece ids drawn with the real art, so the
    tutorial cannot drift away from the game — change a piece and this changes
@@ -27,6 +28,7 @@ window.Game = window.Game || {};
     var lineEl = null;
     var stepsEl = null;
     var nextEl = null;
+    var skipEl = null;
     var cells = [];
     var shown = null;
 
@@ -190,7 +192,10 @@ window.Game = window.Game || {};
             '<h2 class="how__title words" id="howTitle"></h2>' +
             '<p class="how__line words" id="howLine"></p>' +
             '<div class="how__steps" id="howSteps"></div>' +
+            '<div class="how__acts">' +
+            '<button type="button" class="how__skip words" id="howSkip"></button>' +
             '<button type="button" class="how__next words" id="howNext"></button>' +
+            "</div>" +
             "</div>";
 
         Game.Icons.hydrate(host);
@@ -200,6 +205,8 @@ window.Game = window.Game || {};
         lineEl = document.getElementById("howLine");
         stepsEl = document.getElementById("howSteps");
         nextEl = document.getElementById("howNext");
+        skipEl = document.getElementById("howSkip");
+        skipEl.innerHTML = Game.Icons.words("Skip");
 
         for (var d = 0; d < PAGES.length; d++) {
             var step = document.createElement("button");
@@ -212,6 +219,7 @@ window.Game = window.Game || {};
 
         host.addEventListener("click", function (event) {
             if (event.target.closest("#howShut")) return Game.HowTo.close();
+            if (event.target.closest("#howSkip")) return Game.HowTo.close();
 
             var step = event.target.closest(".how__step");
             if (step) return show(Number(step.dataset.to));
@@ -303,7 +311,9 @@ window.Game = window.Game || {};
 
         titleEl.innerHTML = Game.Icons.words(page.title);
         lineEl.innerHTML = Game.Icons.words(page.line);
+        // the last page's Next is Play, and Skip has nothing left to skip
         nextEl.innerHTML = Game.Icons.words(at === PAGES.length - 1 ? "Play" : "Next");
+        skipEl.classList.toggle("is-gone", at === PAGES.length - 1);
 
         var steps = stepsEl.children;
         for (var i = 0; i < steps.length; i++) {
@@ -327,17 +337,19 @@ window.Game = window.Game || {};
             document.addEventListener("keydown", keys);
         },
 
+        // closed, skipped, or played out: all the same, and seen either way
         close: function () {
-            if (!host) return;
+            if (!host || !host.classList.contains("is-open")) return;
             window.clearTimeout(timer);
             host.classList.remove("is-open");
             document.removeEventListener("keydown", keys);
             Game.Storage.write(SEEN, { seen: true });
+            Game.Events.emit("howto:closed", {});
         },
 
-        // the first time the game is ever played, it explains itself
-        firstTime: function () {
-            if (!Game.Storage.read(SEEN)) this.open();
+        // whether the game has explained itself before
+        seen: function () {
+            return !!Game.Storage.read(SEEN);
         }
     };
 })();

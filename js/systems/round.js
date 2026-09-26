@@ -374,7 +374,10 @@ window.Game = window.Game || {};
             return !!state && state.found.indexOf(pieceId) !== -1;
         },
 
-        start: function () {
+        /* A new run. Its opening — the first 1 dropped in — follows after a
+           short pause; started with { hold: true } it waits for release(),
+           which is how to play closing the first time the game is played. */
+        start: function (options) {
             var save = state ? state : readSave();
 
             Game.Board.build(settings().cols, settings().rows);
@@ -382,6 +385,7 @@ window.Game = window.Game || {};
             state = {
                 running: true,
                 opening: true,
+                held: !!(options && options.hold),
                 score: 0,
                 placed: 0,
                 tally: 0,
@@ -399,6 +403,12 @@ window.Game = window.Game || {};
             fillHand();
 
             Game.Events.emit("game:started", {});
+            if (!state.held) window.setTimeout(open, settings().introPause);
+        },
+
+        release: function () {
+            if (!state || !state.held) return;
+            state.held = false;
             window.setTimeout(open, settings().introPause);
         },
 
