@@ -14,15 +14,34 @@ window.Game = window.Game || {};
    by the same code that draws the art (Game.Icons.paint), so they are always
    the tile's own colour and the number's own strokes — or, for the bomb and
    infinity, the diamond's.
+
+   The air has a limit, and the limit follows the phone. Every square in the
+   air is drawn, turned, every frame, and past a few hundred a phone starts
+   to drop frames, which is felt as the game catching. So a tile that breaks
+   into a crowded sky breaks into fewer, larger squares, and the oldest
+   squares are let go to make room for the newest — the ones being looked
+   at. A frame that comes late lowers the limit and the oldest go to meet
+   it; quick frames raise it again, slowly, so a phone that can carry the
+   full effect gets it and one that cannot settles where it runs smooth.
+   Squares too small to see are not drawn at all.
    ============================================================================= */
 
 (function () {
     var GRID = 4;             // a tile breaks into GRID × GRID squares,
-    var SPLIT = [0.5, 0.35];  // of which this share stay whole, this share
-                              // break again in two each way, the rest in three
+    var SPLIT = [0.6, 0.4];   // of which this share stay whole and this share
+                              // break again in two each way (a third way was
+                              // tried: specks that cost as much to draw as the
+                              // squares and read as dust, which is cheaper)
     var DUST = 16;            // and throws this much dust
     var GRAVITY = 1100;       // px/s², so the pieces arc rather than drift
     var DRAG = 0.5;           // share of speed kept after one second in the air
+
+    var MOST = 200;           // squares in the air at once, at most —
+    var LEAST = 48;           // and at least, however slow the phone
+    var FINE = 40;            // room for this many more: the full break
+    var COARSE = 12;          // room for this many: 3 × 3, else 2 × 2
+    var LATE = 0.025;         // a frame this long is a dropped frame
+    var FAINT = 1.5;          // a square under this many pixels is not drawn
 
     var canvas = null;
     var ctx = null;
@@ -32,6 +51,7 @@ window.Game = window.Game || {};
 
     var bits = [];
     var motes = [];
+    var most = MOST;          // what this phone has shown it can carry
     var pictures = {};
     var running = false;
     var last = 0;
@@ -139,13 +159,22 @@ window.Game = window.Game || {};
     /* ---- the pieces ------------------------------------------------------- */
 
     // grid lines, nudged so the squares are not all the same size
-    function cuts() {
+    function cuts(grid) {
         var lines = [0];
-        for (var i = 1; i < GRID; i++) {
-            lines.push((i + (Math.random() - 0.5) * 0.5) / GRID);
+        for (var i = 1; i < grid; i++) {
+            lines.push((i + (Math.random() - 0.5) * 0.5) / grid);
         }
         lines.push(1);
         return lines;
+    }
+
+    /* how finely the next tile breaks, given what is in the air already: the
+       full break with some squares breaking again while there is room for
+       it, coarser as the air fills */
+    function detail() {
+        var room = most - bits.length;
+        if (room >= FINE) return { grid: GRID, split: true };
+        return { grid: room >= COARSE ? 3 : 2, split: false };
     }
 
     function spread(force) {
@@ -172,16 +201,17 @@ window.Game = window.Game || {};
         var cx = box.left + side / 2;
         var cy = box.top + box.height / 2;
 
-        var across = cuts();
-        var down = cuts();
+        var fine = detail();
+        var grid = fine.grid;
+        var across = cuts(grid);
+        var down = cuts(grid);
 
-        for (var r = 0; r < GRID; r++) {
-            for (var c = 0; c < GRID; c++) {
+        for (var r = 0; r < grid; r++) {
+            for (var c = 0; c < grid; c++) {
                 // The full square is the largest a piece gets. Some break
                 // again, into halves or thirds of themselves, so the air fills
                 // with every size smaller than that and none larger.
-                var roll = Math.random();
-                var parts = roll < SPLIT[0] ? 1 : roll < SPLIT[0] + SPLIT[1] ? 2 : 3;
+                var parts = fine.split && Math.random() >= SPLIT[0] ? 2 : 1;
                 var du = (across[c + 1] - across[c]) / parts;
                 var dv = (down[r + 1] - down[r]) / parts;
 
@@ -216,8 +246,12 @@ window.Game = window.Game || {};
             }
         }
 
+        // the newest squares are the ones being looked at: the oldest go
+        // to make room for them
+        if (bits.length > most) bits.splice(0, bits.length - most);
+
         var colours = dustColours(look, piece);
-        for (var i = 0; i < DUST * force; i++) {
+        for (var i = 0; i < DUST * force && motes.length < most / 2; i++) {
             var angle = Math.random() * Math.PI * 2;
             var fast = (260 + Math.random() * 1000) * force;
             motes.push({
@@ -238,9 +272,21 @@ window.Game = window.Game || {};
     /* ---- the air ---------------------------------------------------------- */
 
     function frame(now) {
-        var gap = Math.min(0.034, (now - last) / 1000 || 0.016);
+        var late = (now - last) / 1000 || 0.016;
+        var gap = Math.min(0.034, late);
         last = now;
         var keep = Math.pow(DRAG, gap);
+
+        // a frame that came late is a phone that could not keep up: the
+        // limit comes down and the oldest go to meet it; quick frames bring
+        // it back up, one at a time
+        if (late > LATE) {
+            most = Math.max(LEAST, Math.round(most * 0.75));
+            if (bits.length > most) bits.splice(0, bits.length - most);
+            if (motes.length > most / 2) motes.splice(0, motes.length - Math.floor(most / 2));
+        } else if (most < MOST) {
+            most += 1;
+        }
 
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -262,6 +308,8 @@ window.Game = window.Game || {};
             }
 
             var shrink = 1 - t * 0.4;
+            if (Math.min(b.w, b.h) * shrink * dpr < FAINT) continue;
+
             var cos = Math.cos(b.turn) * dpr;
             var sin = Math.sin(b.turn) * dpr;
             ctx.globalAlpha = t < 0.6 ? 1 : 1 - (t - 0.6) / 0.4;
@@ -317,6 +365,20 @@ window.Game = window.Game || {};
         init: function () {
             still = !!(window.matchMedia &&
                 window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+            // the canvas is made and drawn once now, not at the first merge:
+            // a full-screen canvas takes a moment to set up, and the first
+            // merge is the wrong moment for it
+            if (!still && ensure()) lift();
+        },
+
+        // what is flying right now, and the limit, for anyone measuring
+        inTheAir: function () {
+            return bits.length + motes.length;
+        },
+
+        limit: function () {
+            return most;
         },
 
         /* `tile` is the square on the board, `pieceId` what stood on it, and
