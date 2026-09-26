@@ -324,7 +324,17 @@ window.Game = window.Game || {};
         tile: function (tile, pieceId, force) {
             var piece = Game.Pieces.byId(pieceId);
             if (still || !tile || !piece || !ensure()) return;
-            tileBreaks(tile, piece, force || 1);
+
+            // Decoration only: the board's steps and how to play's frames
+            // both run on from here, and a broken effect — a canvas that
+            // cannot draw, a script an old cache served — must not stall
+            // them. The piece just goes without breaking.
+            try {
+                tileBreaks(tile, piece, force || 1);
+            } catch (err) {
+                if (window.console) console.warn("shatter: " + err);
+                return;
+            }
             lift();
         }
     };
