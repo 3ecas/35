@@ -30,52 +30,52 @@
 
 /* palette:start — written by tools/palette.js */
 /* green */
-.num-1 { --num: #58c26d; }
-.num-2 { --num: #4eb864; }
-.num-3 { --num: #44ae5b; }
-.num-4 { --num: #39a552; }
+.num-1 { --num: #82c88c; }
+.num-2 { --num: #79be83; }
+.num-3 { --num: #6fb47a; }
+.num-4 { --num: #66ab71; }
 
 /* gold */
-.num-5 { --num: #c09500; }
-.num-6 { --num: #b58c00; }
-.num-7 { --num: #aa8300; }
-.num-8 { --num: #9f7b00; }
+.num-5 { --num: #c3a24e; }
+.num-6 { --num: #b99944; }
+.num-7 { --num: #b08f3a; }
+.num-8 { --num: #a68630; }
 
 /* orange */
-.num-9 { --num: #d66f1f; }
-.num-10 { --num: #cc660f; }
-.num-11 { --num: #c15d00; }
-.num-12 { --num: #b45700; }
+.num-9 { --num: #ce8456; }
+.num-10 { --num: #c47b4d; }
+.num-11 { --num: #ba7244; }
+.num-12 { --num: #b0693b; }
 
 /* red */
-.num-13 { --num: #d05654; }
-.num-14 { --num: #c54d4b; }
-.num-15 { --num: #bb4343; }
-.num-16 { --num: #b13a3a; }
+.num-13 { --num: #c56e6a; }
+.num-14 { --num: #bb6561; }
+.num-15 { --num: #b15d58; }
+.num-16 { --num: #a75450; }
 
 /* pink */
-.num-17 { --num: #b84981; }
-.num-18 { --num: #ae4078; }
-.num-19 { --num: #a4366f; }
-.num-20 { --num: #9a2d67; }
+.num-17 { --num: #ae6084; }
+.num-18 { --num: #a5577b; }
+.num-19 { --num: #9b4f72; }
+.num-20 { --num: #91466a; }
 
 /* purple */
-.num-21 { --num: #9447a0; }
-.num-22 { --num: #8a3e96; }
-.num-23 { --num: #81358d; }
-.num-24 { --num: #782c84; }
+.num-21 { --num: #8e5996; }
+.num-22 { --num: #85508d; }
+.num-23 { --num: #7b4884; }
+.num-24 { --num: #723f7b; }
 
 /* violet */
-.num-25 { --num: #654aaf; }
-.num-26 { --num: #5d41a5; }
-.num-27 { --num: #55389c; }
-.num-28 { --num: #4d2e92; }
+.num-25 { --num: #65569c; }
+.num-26 { --num: #5d4d93; }
+.num-27 { --num: #554589; }
+.num-28 { --num: #4d3c80; }
 
 /* blue */
-.num-29 { --num: #1950a9; }
-.num-30 { --num: #0e479f; }
-.num-31 { --num: #033e96; }
-.num-32 { --num: #003689; }
+.num-29 { --num: #305593; }
+.num-30 { --num: #284d8a; }
+.num-31 { --num: #204480; }
+.num-32 { --num: #183c77; }
 
 /* teal */
 .num-33 { --num: #004d4e; }

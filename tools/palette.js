@@ -35,10 +35,10 @@ const SETS = [
 
 const TOP = 34;         // the last rung with a colour of its own
 const PER_SET = 4;
-const LIGHT = 0.73;     // lightness of the 1, the lightest tile on the board
+const LIGHT = 0.77;     // lightness of the 1, the lightest tile on the board
 const STEP = 0.03;      // each rung in a set is this much darker than the last
-const DROP = 0.04;      // and each set starts this much darker than the last
-const CHROMA = 0.155;   // as vivid as the screen allows
+const DROP = 0.045;     // and each set starts this much darker than the last
+const CHROMA = 0.11;    // soft: well inside what the screen could show
 
 /* ---- OKLCH to sRGB --------------------------------------------------------- */
 
