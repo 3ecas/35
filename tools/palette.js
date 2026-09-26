@@ -4,7 +4,7 @@
    set wears one colour: the lowest of the four in a light shade of it, the
    highest in a deep one, the two between in the steps between. Every set
    starts a little darker than the one before, so the run walks the wheel
-   from a fresh green through gold, orange, red, pink, purple, violet and blue
+   from a fresh green through yellow, orange, red, pink, purple, violet and blue
    to a deep teal, lightest at the bottom of the ladder and darkest at 33 and
    34 — the two rungs left over, which take the middle of their ramp. 35
    itself wears every colour round the clock (the conic gradient in the CSS;
@@ -21,11 +21,15 @@
 const fs = require("fs");
 const path = require("path");
 
+// The warm colours turn brown as soon as they are muted, so yellow, orange
+// and red keep more chroma than the rest; and yellow only reads as yellow
+// when it is light, so that set sits a little higher than its place in the
+// walk would put it.
 const SETS = [
     { name: "green", hue: 148 },
-    { name: "gold", hue: 88 },
-    { name: "orange", hue: 52 },
-    { name: "red", hue: 24 },
+    { name: "yellow", hue: 94, chroma: 0.16, lift: 0.06 },
+    { name: "orange", hue: 55, chroma: 0.16, lift: 0.02 },
+    { name: "red", hue: 24, chroma: 0.16, lift: 0.01 },
     { name: "pink", hue: 352 },
     { name: "purple", hue: 322 },
     { name: "violet", hue: 292 },
@@ -38,7 +42,8 @@ const PER_SET = 4;
 const LIGHT = 0.77;     // lightness of the 1, the lightest tile on the board
 const STEP = 0.03;      // each rung in a set is this much darker than the last
 const DROP = 0.045;     // and each set starts this much darker than the last
-const CHROMA = 0.11;    // soft: well inside what the screen could show
+const CHROMA = 0.11;    // soft: well inside what the screen could show,
+                        // unless a set above says otherwise
 
 /* ---- OKLCH to sRGB --------------------------------------------------------- */
 
@@ -84,9 +89,11 @@ function shade(n) {
     const short = TOP - set * PER_SET;
     if (short < PER_SET) step += Math.floor((PER_SET - short) / 2);
 
+    const own = SETS[set];
     return {
-        set: SETS[set],
-        L: LIGHT - DROP * set - STEP * step
+        set: own,
+        L: LIGHT + (own.lift || 0) - DROP * set - STEP * step,
+        C: own.chroma || CHROMA
     };
 }
 
@@ -97,7 +104,7 @@ function rules() {
         if ((n - 1) % PER_SET === 0) {
             lines.push((n > 1 ? "\n" : "") + "/* " + s.set.name + " */");
         }
-        lines.push(".num-" + n + " { --num: " + hex(s.L, CHROMA, s.set.hue) + "; }");
+        lines.push(".num-" + n + " { --num: " + hex(s.L, s.C, s.set.hue) + "; }");
     }
     return lines.join("\n");
 }
