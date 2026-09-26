@@ -12,7 +12,10 @@
      cannot skip.
 
    Only the built copy under www/ is touched; the source index.html stays
-   clean, so the plain web build is unaffected. */
+   clean, so running the game straight from the checkout is unaffected. The
+   GitHub Pages deploy (.github/workflows/static.yml) publishes www/ too, for
+   the same reason: a browser holding one script from the last deploy must
+   not pair it with a fresh copy of another. */
 
 const fs = require('fs');
 const path = require('path');

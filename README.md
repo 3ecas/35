@@ -106,7 +106,7 @@ js/
   pages/game.js    boot
 tools/
   palette.js       the colours of the numbers, written into css/numbers.css
-  stamp.js         cache-busting for the iOS build
+  stamp.js         cache-busting for the iOS build and the web deploy
   icon.swift       draws the app icon and the launch screen
 ios/               the Xcode project (Capacitor)
 ```
