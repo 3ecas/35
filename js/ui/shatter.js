@@ -6,7 +6,10 @@ window.Game = window.Game || {};
    A piece that goes — merged away, blown up, swept off by infinity — breaks
    into squares of itself, number and all, and the squares fly out to every
    edge of the screen through a haze of fine square dust, spinning, falling,
-   fading.
+   fading. How hard it goes is the merge's own weight: a lone merge breaks a
+   piece into a few large squares, the second link of a chain into more, the
+   third and beyond — the ×3 the combo shows — into the most, smaller and
+   faster, with more dust. A blast is the top of that scale.
 
    One canvas over the whole screen. It draws only while something is in the
    air and stops the moment the last piece is gone, so a still board costs
@@ -27,12 +30,14 @@ window.Game = window.Game || {};
    ============================================================================= */
 
 (function () {
-    var GRID = 4;             // a tile breaks into GRID × GRID squares,
-    var SPLIT = [0.6, 0.4];   // of which this share stay whole and this share
-                              // break again in two each way (a third way was
-                              // tried: specks that cost as much to draw as the
-                              // squares and read as dust, which is cheaper)
-    var DUST = 16;            // and throws this much dust
+    var GRID = 4;             // at full force a tile breaks into GRID × GRID
+    var SPLIT = [0.6, 0.4];   // squares, of which this share stay whole and
+                              // this share break again in two each way (a
+                              // third way was tried: specks that cost as much
+                              // to draw as the squares and read as dust, which
+                              // is cheaper)
+    var DUST = 16;            // dust thrown by a lone merge; more with force
+    var TOP = 3;              // force is 1 for a lone merge, and at most this
     var GRAVITY = 1100;       // px/s², so the pieces arc rather than drift
     var DRAG = 0.5;           // share of speed kept after one second in the air
 
@@ -168,17 +173,30 @@ window.Game = window.Game || {};
         return lines;
     }
 
-    /* how finely the next tile breaks, given what is in the air already: the
-       full break with some squares breaking again while there is room for
-       it, coarser as the air fills */
-    function detail() {
+    /* how finely a tile breaks: by force — a few large squares for a lone
+       merge, the full break with some squares breaking again at the top of
+       the scale — and never finer than the air has room for, coarser as it
+       fills */
+    function detail(force) {
+        var grid = force >= 1.5 ? GRID : 3;
+        var split = force >= 2.5;
+
         var room = most - bits.length;
-        if (room >= FINE) return { grid: GRID, split: true };
-        return { grid: room >= COARSE ? 3 : 2, split: false };
+        if (room < FINE) {
+            grid = Math.min(grid, room >= COARSE ? 3 : 2);
+            split = false;
+        }
+        return { grid: grid, split: split };
+    }
+
+    // speed and dust climb with force, but more gently than it does: the
+    // top of the scale flies half again as fast as a lone merge, not thrice
+    function punch(force) {
+        return 1 + (force - 1) * 0.25;
     }
 
     function spread(force) {
-        return (560 + Math.random() * 1150) * force;
+        return (560 + Math.random() * 1150) * punch(force);
     }
 
     // how fast a piece turns, either way round: most tumble slowly, and some
@@ -201,7 +219,7 @@ window.Game = window.Game || {};
         var cx = box.left + side / 2;
         var cy = box.top + box.height / 2;
 
-        var fine = detail();
+        var fine = detail(force);
         var grid = fine.grid;
         var across = cuts(grid);
         var down = cuts(grid);
@@ -235,7 +253,7 @@ window.Game = window.Game || {};
                             w: du * side, h: dv * side,
                             x: x, y: y,
                             vx: Math.cos(aim) * speed,
-                            vy: Math.sin(aim) * speed - 260 * force,
+                            vy: Math.sin(aim) * speed - 260 * punch(force),
                             turn: Math.random() * 0.6 - 0.3,
                             spin: spinOf() * (1 + (parts - 1) * 0.2),
                             age: 0,
@@ -251,9 +269,10 @@ window.Game = window.Game || {};
         if (bits.length > most) bits.splice(0, bits.length - most);
 
         var colours = dustColours(look, piece);
-        for (var i = 0; i < DUST * force && motes.length < most / 2; i++) {
+        var dust = DUST * (1 + (force - 1) * 0.5);
+        for (var i = 0; i < dust && motes.length < most / 2; i++) {
             var angle = Math.random() * Math.PI * 2;
-            var fast = (260 + Math.random() * 1000) * force;
+            var fast = (260 + Math.random() * 1000) * punch(force);
             motes.push({
                 x: cx + (Math.random() - 0.5) * side * 0.6,
                 y: cy + (Math.random() - 0.5) * side * 0.6,
@@ -382,10 +401,12 @@ window.Game = window.Game || {};
         },
 
         /* `tile` is the square on the board, `pieceId` what stood on it, and
-           `force` how hard it goes: 1 for a merge, more for a blast */
+           `force` how hard it goes: 1 for a lone merge, the chain's multiplier
+           up to TOP for a link of a chain, TOP for a blast */
         tile: function (tile, pieceId, force) {
             var piece = Game.Pieces.byId(pieceId);
             if (still || !tile || !piece || !ensure()) return;
+            force = Math.min(TOP, Math.max(0.1, force || 1));
 
             // Decoration only: the board's steps and how to play's frames
             // both run on from here, and a broken effect — a canvas that

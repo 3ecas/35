@@ -82,7 +82,9 @@ are the two pieces that are not numbers, and they do not look like numbers:
 each stands on its point — the bomb a black diamond with a white 0 on it,
 infinity a white diamond with a black edge and the sign on it, the bomb turned
 inside out. Whatever leaves the board — merged, blown up, swept by infinity —
-breaks into squares of itself that fly to the edges of the screen.
+breaks into squares of itself that fly to the edges of the screen: a few
+large squares for a lone merge, more and smaller the longer the chain, up to
+the third link, and the most for a blast.
 
 A strip at the foot of the screen, under the piece in hand and the bomb, is
 kept clear for a banner ad (60pt on a phone, 90pt on an iPad; `--ad-space` in

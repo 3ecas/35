@@ -177,7 +177,9 @@ window.Game = window.Game || {};
     }
 
     /* Whatever is standing on these squares breaks apart and flies — read off
-       the board as drawn, so call it before the squares are repainted. */
+       the board as drawn, so call it before the squares are repainted. The
+       force is the merge's weight: a lone merge is 1, and each link of a
+       chain the multiplier the combo shows, up to 3. */
     function shatter(ids, force) {
         ids.forEach(function (id) {
             if (shown[id]) Game.Shatter.tile(tiles[id], shown[id], force);
@@ -186,6 +188,7 @@ window.Game = window.Game || {};
 
     function playFuse(step, chain, done) {
         var kept = madeCells(step);
+        var force = Math.min(3, step.times || 1);
         var trail = (step.fuse || []).filter(function (id) {
             return kept.indexOf(id) === -1;
         });
@@ -204,7 +207,7 @@ window.Game = window.Game || {};
         // the tile that is kept breaks last, with the new number in its place
         function burn() {
             if (at >= trail.length) {
-                shatter(kept, 1);
+                shatter(kept, force);
                 paintBoard(step.board);
                 playMerge(step, chain);
                 done();
@@ -214,7 +217,7 @@ window.Game = window.Game || {};
             var id = trail[at];
             at++;
 
-            shatter([id], 1);
+            shatter([id], force);
             paintContents(id, null);
             paintState(id);
 
@@ -268,9 +271,10 @@ window.Game = window.Game || {};
         }
 
         if (step.type === "clear" || step.type === "cash" || step.type === "blast") {
-            // a cash takes every 35 in the run; a blast goes off harder
+            // a cash takes every 35 in the run; a blast, and three 35s cashing
+            // in, go off as hard as anything does, a sweep a little less
             shatter(step.type === "cash" ? step.fuse : step.cells,
-                    step.type === "blast" ? 1.5 : 1);
+                    step.type === "clear" ? 2 : 3);
             paintBoard(step.board);
             playClear(step);
 
