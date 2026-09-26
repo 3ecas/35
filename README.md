@@ -27,15 +27,16 @@ often, the higher you climb: one every five drops from 10, one every three from
 15, two every five from 20, two every three from 25, three every two from 30.
 The run ends when the board is full.
 
-**The bomb — the black 0.** The dial beside the hand fills with the merges
-your moves make — twenty fill it — and keeps its charge if you leave mid-run.
-When it is full, tap it and pick a column to drop a bomb. It joins nothing; a
-merge beside it, or its own five-turn fuse, sets it off, and the eight squares
-around it go with it.
+**The bomb — the black diamond with a 0 on it.** The dial beside the hand
+fills with the merges your moves make — twenty fill it — and keeps its charge
+if you leave mid-run. When it is full, tap it and pick a column to drop a bomb.
+It joins nothing; a merge beside it, or its own five-turn fuse, sets it off,
+and the eight squares around it go with it.
 
-**Infinity — the white ∞.** It falls in now and then once a run passes 6,250
-points. A merge beside it, or a blast over it, sets it off: every piece on the
-board rings, you tap a number, and every one of that number goes.
+**Infinity — the white diamond with the ∞ on it.** It falls in now and then
+once a run passes 6,250 points. A merge beside it, or a blast over it, sets it
+off: every piece on the board rings, you tap a number, and every one of that
+number goes.
 
 Three 35s have nowhere to go: they cash in for double and leave the board.
 Getting to 35 is hard; past it there is no ceiling on the score.
@@ -62,12 +63,20 @@ from straight bars — no curves, no outline. The grid is white; the score, the
 best and the three buttons are white and drawn the same way, and the few words
 the game says are square capitals on a 5 × 7 grid. Behind it all,
 the colours of the numbers on the board — muted, so the tiles stand out —
-blend and drift slowly across the screen. The colours walk the spectrum up
-the ladder — green, emerald, teal, blue, violet, plum, wine — and darken as
-they climb, so the start of a run looks as easy as it plays and the top looks
-as hard as it is. 35 wears every colour, round the clock. Whatever leaves the
-board — merged, blown up, swept by infinity — breaks into squares of itself
-that fly to the edges of the screen.
+blend and drift slowly across the screen. The colours go up the ladder in
+sets of four — 1 to 4, 5 to 8, and so on — and each set wears one colour, the
+lowest of the four in a light shade of it and the highest in a deep one. Every
+set starts a little darker than the one before, so the run walks the whole
+wheel — green, gold, orange, red, pink, purple, violet, blue, and a deep teal
+for 33 and 34 — and the start of a run looks as easy as it plays while the top
+looks as hard as it is. 35 wears every colour, round the clock. The shades are
+made by `tools/palette.js`: the hues and the steps are set there, and
+`npm run palette` writes them into `css/numbers.css`. The bomb and infinity
+are the two pieces that are not numbers, and they do not look like numbers:
+each stands on its point — the bomb a black diamond with a white 0 on it,
+infinity a white diamond with a black edge and the sign on it, the bomb turned
+inside out. Whatever leaves the board — merged, blown up, swept by infinity —
+breaks into squares of itself that fly to the edges of the screen.
 
 A strip at the foot of the screen, under the piece in hand and the bomb, is
 kept clear for a banner ad (60pt on a phone, 90pt on an iPad; `--ad-space` in
@@ -85,7 +94,7 @@ css/
   game.css         the board, the hand, the three buttons, how-to, end card
   charges.css      the bomb dial
   backdrop.css     the board's colours drifting behind everything
-  numbers.css      the palette, and the flat square pieces
+  numbers.css      the palette, the flat square pieces, and the two diamonds
 js/
   core/            config (every tunable number), events, storage
   data/pieces.js   the ladder 1–35, the bomb, infinity
@@ -93,6 +102,7 @@ js/
   ui/              listen and draw — never edit state directly
   pages/game.js    boot
 tools/
+  palette.js       the colours of the numbers, written into css/numbers.css
   stamp.js         cache-busting for the iOS build
   icon.swift       draws the app icon and the launch screen
 ios/               the Xcode project (Capacitor)

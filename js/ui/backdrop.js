@@ -84,7 +84,7 @@ window.Game = window.Game || {};
         }
 
         var tones = pieces.slice(0, POOLS).map(tone).filter(Boolean);
-        return tones.length ? tones : [mute(rgb("#4bbc6b"))];
+        return tones.length ? tones : [mute(rgb("#58c26d"))];
     }
 
     function retint() {

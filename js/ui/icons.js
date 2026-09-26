@@ -28,10 +28,10 @@ window.Game = window.Game || {};
 
     /* ---- the numbers ------------------------------------------------------
 
-       Pieces n1 to n35 up the ladder, and n0, the bomb. Every digit is built
-       from straight bars in a 5 × 7 box, 1.5 thick, square at every corner —
-       no curve anywhere and no outline, just white on the tile's colour.
-       The colour is the tile's, not the art's: see css/numbers.css. */
+       Pieces n1 to n35 up the ladder, and the 0 the bomb carries. Every digit
+       is built from straight bars in a 5 × 7 box, 1.5 thick, square at every
+       corner — no curve anywhere and no outline, just white on the tile's
+       colour. The colour is the tile's, not the art's: see css/numbers.css. */
     var W = 5;
     var H = 7;
     var T = 1.5;
@@ -210,21 +210,49 @@ window.Game = window.Game || {};
         return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;");
     }
 
-    // infinity: one unbroken figure of eight, dark on its white tile — the
-    // bomb turned inside out
+    /* ---- the bomb and infinity ---------------------------------------------
+
+       Neither is a number, and neither is a square: the two pieces that are
+       set off rather than built stand on a point. The bomb is a black diamond
+       with a white 0 on it, and infinity is the bomb turned inside out — a
+       white diamond with a black edge, and one unbroken figure of eight on it
+       in the same black. The edge, which no number has, is what shows the
+       white piece on the white grid. Both diamonds fill the tile's box from
+       corner to corner, so on the board they stand as tall as the numbers
+       beside them. */
+    var INK = "#2d2a2e";
+    var EDGE = 1.5;                     // infinity's frame, measured across it
+    var LOOP_WIDTH = 1.9;
+
     var LOOP =
         "M12 12C10.88 10.29 9.76 9.44 8.64 9.44A2.24 2.56 0 1 0 8.64 14.56" +
         "C9.76 14.56 10.88 13.71 12 12C13.12 10.29 14.24 9.44 15.36 9.44" +
         "A2.24 2.56 0 1 1 15.36 14.56C14.24 14.56 13.12 13.71 12 12Z";
-    var INK = "#2d2a2e";
-    var LOOP_WIDTH = 1.9;
+
+    // a diamond on the 24-unit box, its points pulled in from the edges by
+    // `inset` — a frame `inset` wide along the axis is inset / √2 across
+    function diamond(inset) {
+        var near = round(inset);
+        var far = round(24 - inset);
+        return "M12 " + near + "L" + far + " 12L12 " + far + "L" + near + " 12Z";
+    }
+
+    var DIAMOND = diamond(0);
+    var INNER = diamond(EDGE * Math.SQRT2);
 
     var art = {
+        bomb:
+            '<path d="' + DIAMOND + '" fill="' + INK + '"/>' +
+            '<path class="mark" fill="#fff" d="' + outline(bars(0)) + '"/>',
+
         infinity:
+            '<path d="' + DIAMOND + '" fill="' + INK + '"/>' +
+            '<path d="' + INNER + '" fill="#fff"/>' +
             '<path d="' + LOOP + '" fill="none" stroke="' + INK + '" ' +
             'stroke-width="' + LOOP_WIDTH + '"/>'
     };
 
+    // the numbers, 0 to 35: the plain 0 is the mark the bomb dial wears
     for (var n = 0; n <= 35; n++) art["n" + n] = numeral(n);
 
     function wrap(body, isArt) {
@@ -278,21 +306,42 @@ window.Game = window.Game || {};
         },
 
         /* The same drawing on a canvas, in the 24-unit box the art is made in,
-           for js/ui/shatter.js to cut into pieces. */
+           for js/ui/shatter.js to cut into pieces. A number is painted on
+           whatever ground the canvas already has; the bomb and infinity bring
+           their own. */
         paint: function (ctx, name) {
+            if (Game.Icons.ownGround(name)) {
+                ctx.fillStyle = INK;
+                ctx.fill(new Path2D(DIAMOND));
+            }
+
             if (name === "infinity") {
+                ctx.fillStyle = "#fff";
+                ctx.fill(new Path2D(INNER));
                 ctx.lineWidth = LOOP_WIDTH;
                 ctx.strokeStyle = INK;
                 ctx.stroke(new Path2D(LOOP));
                 return;
             }
 
-            if (!/^n\d+$/.test(name)) return;
+            var digits = name === "bomb" ? "0"
+                : /^n\d+$/.test(name) ? name.slice(1) : null;
+            if (digits === null) return;
+
             ctx.fillStyle = "#fff";
-            bars(name.slice(1)).forEach(function (r) {
+            bars(digits).forEach(function (r) {
                 ctx.fillRect(r[0], r[1], r[2], r[3]);
             });
         },
+
+        /* the pieces whose art is its own shape and ground — a number is
+           white on whatever colour its tile wears (css/numbers.css) */
+        ownGround: function (name) {
+            return name === "bomb" || name === "infinity";
+        },
+
+        // the black of the bomb, and of infinity's edge and sign
+        ink: INK,
 
         hydrate: function (root) {
             var host = root || document;

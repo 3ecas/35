@@ -52,7 +52,7 @@ window.Game = window.Game || {};
     var bomb = {
         id: "bomb",
         name: "Bomb",
-        icon: "n0",
+        icon: "bomb",
         tint: "num num-0",
         tier: 0,
         next: null,

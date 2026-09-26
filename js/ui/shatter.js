@@ -12,7 +12,8 @@ window.Game = window.Game || {};
    air and stops the moment the last piece is gone, so a still board costs
    nothing. The pieces are cut from a picture of the tile as it stood, painted
    by the same code that draws the art (Game.Icons.paint), so they are always
-   the tile's own colour and the number's own strokes.
+   the tile's own colour and the number's own strokes — or, for the bomb and
+   infinity, the diamond's.
    ============================================================================= */
 
 (function () {
@@ -115,7 +116,7 @@ window.Game = window.Game || {};
 
         if (look.rainbow) {
             wheel(g, look.rainbow);
-        } else {
+        } else if (!Game.Icons.ownGround(piece.icon)) {
             g.fillStyle = look.flat;
             g.fillRect(0, 0, 24, 24);
         }
@@ -125,11 +126,14 @@ window.Game = window.Game || {};
         return art;
     }
 
-    function dustColours(look) {
+    // the tile's colour, and a little of what was drawn on it: white off a
+    // number or the bomb, ink off infinity
+    function dustColours(look, piece) {
         if (look.rainbow) {
             return look.rainbow.map(function (stop) { return stop.hex; });
         }
-        return [look.flat, look.flat, "#ffffff"];
+        var mark = piece.icon === "infinity" ? Game.Icons.ink : "#ffffff";
+        return [look.flat, look.flat, mark];
     }
 
     /* ---- the pieces ------------------------------------------------------- */
@@ -212,7 +216,7 @@ window.Game = window.Game || {};
             }
         }
 
-        var colours = dustColours(look);
+        var colours = dustColours(look, piece);
         for (var i = 0; i < DUST * force; i++) {
             var angle = Math.random() * Math.PI * 2;
             var fast = (260 + Math.random() * 1000) * force;
