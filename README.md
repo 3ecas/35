@@ -21,7 +21,10 @@ two.
 The hand deals four numbers — the best you have made and the three under it —
 so the deal climbs with you; 34 and 35 are only built, never dealt, until the
 first 35 is made. From then on the deal is the last four, 32 to 35, for the
-rest of the run. Once you make a 10 the seam starts to give way and pieces
+rest of the run. The four come round in turn rather than by the roll of a
+die: they go into a bag — the lowest four times, then three, two, and the top
+once — and the hand is dealt from it until it is empty, so none of them stays
+away for long, and the same number never comes three times running. Once you make a 10 the seam starts to give way and pieces
 fall in on their own, into columns you did not pick — more of them, and more
 often, the higher you climb: one every five drops from 10, one every three from
 15, two every five from 20, two every three from 25, three every two from 30.

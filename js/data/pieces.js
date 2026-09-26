@@ -78,6 +78,12 @@ window.Game = window.Game || {};
     var WINDOW = 4;
     var CHANCE = [46, 34, 20, 10];
 
+    // The hand is dealt from a bag (js/systems/round.js): every number in
+    // the window goes in, this many times each, lowest first — so in a bag
+    // of ten the lowest comes four times and the highest once, and none of
+    // them can stay away for longer than a bag.
+    var SHARE = [4, 3, 2, 1];
+
     function windowTop(highestTier) {
         var peak = ladder.length;
         var made = highestTier || 1;
@@ -103,6 +109,15 @@ window.Game = window.Game || {};
             return ladder.slice(Math.max(0, top - WINDOW), top);
         },
 
+        bagFor: function (highestTier) {
+            var out = [];
+            this.dealing(highestTier).forEach(function (piece, i) {
+                for (var n = 0; n < (SHARE[i] || 1); n++) out.push(piece.id);
+            });
+            return out;
+        },
+
+        // one at random, weighted: what falls in from the seam
         randomFor: function (highestTier) {
             var options = this.dealing(highestTier);
             var total = options.reduce(function (sum, piece, i) {

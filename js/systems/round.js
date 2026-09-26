@@ -38,6 +38,7 @@ window.Game = window.Game || {};
             runLen: state.runLen,
             lastInfinity: state.lastInfinity,
             hand: state.hand.map(function (piece) { return piece.id; }),
+            bag: state.bag.slice(),
             board: Game.Board.snapshot()
         };
     }
@@ -59,24 +60,38 @@ window.Game = window.Game || {};
         if (state && detail.name === "bomb") state.bomb = detail.charge;
     });
 
+    /* The hand is dealt from a bag, not by the roll of a die. Every number
+       in the deal goes into the bag in its share — the lowest most often, the
+       top once (Game.Pieces.bagFor) — and the hand takes from the bag at
+       random until it is empty and a new one is made. So no number can stay
+       away for longer than a bag, and a run of one number is never long: the
+       same number may come twice running, never sameInRow + 1 times. When
+       the deal moves (raise), the bag is thrown away, so the new number is
+       in the next one. */
+    function draw(blocked) {
+        var open = [];
+        state.bag.forEach(function (id, i) {
+            if (id !== blocked) open.push(i);
+        });
+        return open.length ? open[Math.floor(Math.random() * open.length)] : -1;
+    }
+
     function nextDeal() {
         var most = settings().sameInRow || 0;
-        var piece = Game.Pieces.randomFor(state.highest);
+        var blocked = most > 0 && state.runLen >= most ? state.runId : null;
 
-        if (most > 0 && state.runId === piece.id && state.runLen >= most) {
-            var options = Game.Pieces.dealing(state.highest).filter(function (other) {
-                return other.id !== state.runId;
-            });
-            if (options.length) {
-                var guard = 0;
-                while (piece.id === state.runId && guard++ < 24) {
-                    piece = Game.Pieces.randomFor(state.highest);
-                }
-                if (piece.id === state.runId) {
-                    piece = options[Math.floor(Math.random() * options.length)];
-                }
-            }
+        if (!state.bag.length) state.bag = Game.Pieces.bagFor(state.highest);
+
+        var at = draw(blocked);
+        if (at === -1) {
+            // nothing is left but the number just dealt twice: the next bag
+            // comes forward, and what is left of this one is dealt from it
+            state.bag = state.bag.concat(Game.Pieces.bagFor(state.highest));
+            at = draw(blocked);
         }
+        if (at === -1) at = draw(null);     // a deal of one number: it repeats
+
+        var piece = Game.Pieces.byId(state.bag.splice(at, 1)[0]);
 
         if (piece.id === state.runId) state.runLen += 1;
         else { state.runId = piece.id; state.runLen = 1; }
@@ -314,6 +329,7 @@ window.Game = window.Game || {};
         var now = Game.Pieces.dealing(state.highest);
         if (now[0] === was[0] && now.length === was.length) return;
 
+        state.bag = [];
         Game.Events.emit("game:dealing", { lowest: now[0] });
     }
 
@@ -372,6 +388,7 @@ window.Game = window.Game || {};
                 highest: 1,
                 sinceFall: 0,
                 hand: [],
+                bag: [],
                 runId: null,
                 runLen: 0,
                 lastInfinity: null,
@@ -404,6 +421,11 @@ window.Game = window.Game || {};
                 hand: (game.hand || [])
                     .map(function (id) { return Game.Pieces.byId(id); })
                     .filter(Boolean),
+                bag: (game.bag || []).filter(function (id) {
+                    return Game.Pieces.dealing(game.highest || 1).some(function (piece) {
+                        return piece.id === id;
+                    });
+                }),
                 runId: game.runId || null,
                 runLen: game.runLen || 0,
                 lastInfinity: typeof game.lastInfinity === "number" ? game.lastInfinity : null,
