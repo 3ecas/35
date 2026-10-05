@@ -3,37 +3,42 @@ window.Game = window.Game || {};
 /* =============================================================================
    CHARGE VIEW
    -----------------------------------------------------------------------------
-   The bomb beside the hand. A small square that fills like a glass: a
-   level that rises as the charge does, with a few motes drifting up through
-   it so the thing is visibly alive without asking for attention. It is meant to
-   be read out of the corner of the eye — the piece sitting on top is what you
-   are actually looking at.
+   The bomb beside the hand. A small square that fills like a glass: a level
+   that rises as the charge does, with a few square flecks drifting up through
+   it so the thing is visibly alive, and a pulse that never stops — a square
+   stroke born on the dial's edge in a flash, going out past it and fading as
+   it goes, one after another. White, faint and slow while the dial is
+   filling, and the fuller the clearer; black and quick once it is worth
+   pressing, and born in a white flash either way. It is meant to be read out of the corner of the eye — the
+   piece sitting on top is what you are actually looking at.
 
    Any [data-charge] button gets this renderer, so a second dial would only
    need its markup.
    ============================================================================= */
 
 (function () {
-    var PAD = 15;              // room around the square for the ready-state motes
+    var PAD = 15;              // room around the square for the pulses to go
     var GREY = "#aeb6c0";      // what a dial looks like while it is still filling
+
+    // the pulse: seconds between one and the next, seconds one takes to cross
+    // its room, and the share of that spent flashing — filling, then ready
+    var EVERY = [0.9, 0.42];
+    var TRAVEL = [1.3, 0.7];
+    var FLASH = 0.18;
 
     var dials = [];
     var still = false;
     var last = 0;
 
-    /* ---- the piece itself, small enough to be dust ---------------------------
-       The dial throws off what it is: little zeros. Drawn rather than scaled
-       down from the art, because at four pixels the real drawing is a smudge —
-       what survives at this size is the silhouette and nothing else. */
-    function zero(ctx, x, y, r, turn) {
+    /* ---- the flecks, small enough to be dust ---------------------------------
+       Little squares, like everything else in the game: at four pixels a
+       drawing of the piece would be a smudge, and what survives at that size
+       is the square and nothing else. */
+    function fleck(ctx, x, y, r, turn) {
         ctx.save();
         ctx.translate(x, y);
         ctx.rotate(turn);
-        ctx.beginPath();
-        ctx.ellipse(0, 0, r * 0.5, r * 0.78, 0, 0, Math.PI * 2);
-        ctx.lineWidth = r * 0.42;
-        ctx.strokeStyle = ctx.fillStyle;
-        ctx.stroke();
+        ctx.fillRect(-r / 2, -r / 2, r, r);
         ctx.restore();
     }
 
@@ -49,27 +54,12 @@ window.Game = window.Game || {};
         };
     }
 
-    /* the ones that only appear once a dial is worth pressing: they circle it
-       rather than sit in it, which is what makes a full dial catch the eye */
-    function spark() {
-        return {
-            angle: Math.random() * Math.PI * 2,
-            spin: (Math.random() < 0.5 ? -1 : 1) * (0.25 + Math.random() * 0.5),
-            out: 0.02 + Math.random() * 0.85,      // 0 at the square, 1 at the canvas edge
-            size: 1.8 + Math.random() * 1.6,
-            turn: Math.random() * Math.PI,
-            twist: (Math.random() < 0.5 ? -1 : 1) * (0.4 + Math.random()),
-            life: Math.random()
-        };
-    }
-
     function make(host) {
         var canvas = host.querySelector(".dial__ink");
         if (!canvas || !canvas.getContext) return null;
 
         var one = {
             name: host.getAttribute("data-charge"),
-            shape: zero,
             host: host,
             canvas: canvas,
             ctx: canvas.getContext("2d"),
@@ -77,12 +67,12 @@ window.Game = window.Game || {};
             charge: 0,
             shown: 0,
             ready: false,
-            motes: []
+            motes: [],
+            pulses: [],         // each is how far out it has gone, 0 to 1
+            wait: 0             // seconds until the next one is born
         };
 
-        one.sparks = [];
         for (var i = 0; i < 10; i++) one.motes.push(mote());
-        for (var k = 0; k < 14; k++) one.sparks.push(spark());
         measure(one);
         return one;
     }
@@ -97,6 +87,12 @@ window.Game = window.Game || {};
         one.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
+    /* the square stroke `reach` outside the dial's edge */
+    function ring(ctx, cx, cy, r, reach) {
+        var half = r + reach;
+        ctx.strokeRect(cx - half, cy - half, half * 2, half * 2);
+    }
+
     function draw(one, gap) {
         var ctx = one.ctx;
         var w = one.wide;
@@ -106,6 +102,7 @@ window.Game = window.Game || {};
         var r = Math.min(w, h) / 2 - PAD;           // half the square itself
         var top = cy - r;
         var span = r * 2;
+        var mode = one.ready ? 1 : 0;
 
         one.shown += (one.charge - one.shown) * Math.min(1, gap * 5);
         ctx.clearRect(0, 0, w, h);
@@ -137,31 +134,51 @@ window.Game = window.Game || {};
 
             ctx.globalAlpha = (one.ready ? 0.85 : 0.5) * m.glow;
             ctx.fillStyle = one.ready ? "#fffdf0" : "#ffffff";
-            one.shape(ctx, cx - r + span * m.x, y,
-                      m.size * (one.ready ? 1.2 : 1), m.turn);
+            fleck(ctx, cx - r + span * m.x, y, m.size * (one.ready ? 1.2 : 1), m.turn);
         }
 
         ctx.restore();
 
-        // and, once it is full, a scatter of sparks going round outside the edge
-        if (one.ready) {
-            for (var k = 0; k < one.sparks.length; k++) {
-                var s = one.sparks[k];
-                if (!still) {
-                    s.angle += s.spin * gap;
-                    s.turn += s.twist * gap;
-                    s.life += gap * 0.55;
-                    if (s.life > 1) { one.sparks[k] = spark(); one.sparks[k].life = 0; continue; }
-                }
-                // round a square just outside the edge, not a circle
-                var cos = Math.cos(s.angle);
-                var sin = Math.sin(s.angle);
-                var reach = (r + 3 + s.out * (PAD - 4)) / Math.max(Math.abs(cos), Math.abs(sin));
-                var fade = Math.sin(Math.min(1, s.life) * Math.PI);
+        // The pulse. A new one is born on the edge whenever the last has had
+        // its head start, so there is always one on its way out: faint while
+        // the dial fills, and the fuller the clearer; black once it is ready.
+        // Each goes out in a flash — a white stroke on the edge, gone in a
+        // moment — then fades as it goes, until it reaches the edge of its
+        // room and is let go.
+        if (!still) {
+            one.wait -= gap;
+            if (one.wait <= 0) {
+                one.pulses.push(0);
+                one.wait = EVERY[mode];
+            }
+        }
 
-                ctx.globalAlpha = 0.85 * fade;
-                ctx.fillStyle = one.lit;
-                one.shape(ctx, cx + cos * reach, cy + sin * reach, s.size, s.turn);
+        var seen = one.ready ? 1 : 0.35 + 0.45 * Math.max(0, Math.min(1, one.shown));
+        ctx.lineJoin = "miter";
+
+        for (var k = one.pulses.length - 1; k >= 0; k--) {
+            var out = one.pulses[k];
+            if (!still) {
+                out += gap / TRAVEL[mode];
+                one.pulses[k] = out;
+            }
+            if (out >= 1) { one.pulses.splice(k, 1); continue; }
+
+            var fade = 1 - out;
+            var reach = out * (PAD - 2);
+
+            // white while filling, like the dial's own edge; the dial's black
+            // once it is ready — and the flash white either way
+            ctx.globalAlpha = seen * fade * fade;
+            ctx.lineWidth = 1 + 2 * fade;
+            ctx.strokeStyle = one.ready ? one.lit : "#ffffff";
+            ring(ctx, cx, cy, r, reach);
+
+            if (out < FLASH) {
+                ctx.globalAlpha = (one.ready ? 1 : 0.9) * (1 - out / FLASH);
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = "#ffffff";
+                ring(ctx, cx, cy, r, reach);
             }
         }
 
@@ -202,6 +219,9 @@ window.Game = window.Game || {};
 
         one.charge = detail.charge;
         one.ready = detail.ready;
+
+        // filling up is announced: a pulse at once, not after the next wait
+        if (filled) one.wait = 0;
 
         if (!still && (grew || filled)) react(one, filled);
         one.host.classList.toggle("is-ready", detail.ready);

@@ -75,22 +75,22 @@ window.Game = window.Game || {};
         index[piece.id] = piece;
     });
 
-    var WINDOW = 4;
-    var CHANCE = [46, 34, 20, 10];
+    var WINDOW = 3;
+    var CHANCE = [46, 34, 20];
 
     // The hand is dealt from a bag (js/systems/round.js): every number in
     // the window goes in, this many times each, lowest first — so in a bag
-    // of ten the lowest comes four times and the highest once, and none of
-    // them can stay away for longer than a bag.
-    var SHARE = [4, 3, 2, 1];
+    // of eight the lowest comes four times, the middle three and the highest
+    // once, and none of them can stay away for longer than a bag.
+    var SHARE = [4, 3, 1];
 
     function windowTop(highestTier) {
         var peak = ladder.length;
         var made = highestTier || 1;
 
         // No floor of a full window: a run starts on 1 alone and every rung
-        // it makes joins the deal, until there are four and the bottom one
-        // drops off — making a 5 is what takes the 1 out of the hand. The top
+        // it makes joins the deal, until there are three and the bottom one
+        // drops off — making a 4 is what takes the 1 out of the hand. The top
         // two rungs are never dealt, only built, until 35 itself is made.
         return made >= peak ? peak : Math.max(1, Math.min(made, peak - 2));
     }

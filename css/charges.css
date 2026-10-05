@@ -1,6 +1,7 @@
 /* The piece in hand and the bomb, side by side on one line, centred under
-   the grid. The bomb is quiet by design: a small square that fills, the 0 on
-   top, and an edge that only darkens once it is worth pressing. */
+   the grid. The bomb is a small square that fills, the 0 on top, an edge that
+   only darkens once it is worth pressing, and a pulse going out from that
+   edge without end (js/ui/chargeview.js). */
 
 .tray {
     display: flex;
@@ -25,8 +26,8 @@
         transform 0.14s ease;
 }
 
-/* wider than the button on purpose: the ready-state sparks go round outside the
-   edge, so the canvas has to reach past it */
+/* wider than the button on purpose: the pulses go out past the edge, so the
+   canvas has to reach past it */
 .dial__ink {
     position: absolute;
     inset: -15px;
