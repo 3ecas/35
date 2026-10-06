@@ -240,6 +240,25 @@ window.Game = window.Game || {};
     var DIAMOND = diamond(0);
     var INNER = diamond(EDGE * Math.SQRT2);
 
+    // the colours 35 wears, read off the stylesheet the first time they are
+    // asked for, so the one list in css/numbers.css is the only one
+    var wheel = null;
+
+    function readWheel() {
+        var probe = document.createElement("span");
+        probe.className = "num num-35";
+        probe.hidden = true;
+        document.body.appendChild(probe);
+        var found = getComputedStyle(probe).getPropertyValue("--num");
+        document.body.removeChild(probe);
+
+        var stops = [];
+        var stop = /(#[0-9a-f]{6})\s+([\d.]+)deg/gi;
+        var hit;
+        while ((hit = stop.exec(found))) stops.push({ at: +hit[2], hex: hit[1] });
+        return stops.length ? stops : [{ at: 0, hex: INK }, { at: 360, hex: INK }];
+    }
+
     var art = {
         bomb:
             '<path d="' + DIAMOND + '" fill="' + INK + '"/>' +
@@ -342,6 +361,12 @@ window.Game = window.Game || {};
 
         // the black of the bomb, and of infinity's edge and sign
         ink: INK,
+
+        /* the rainbow only 35 wears, as [{ at: degrees from twelve, hex }],
+           round the clock — for anything that wants to paint it */
+        wheel: function () {
+            return wheel || (wheel = readWheel());
+        },
 
         hydrate: function (root) {
             var host = root || document;

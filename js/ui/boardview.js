@@ -17,6 +17,7 @@ window.Game = window.Game || {};
     var MERGE_MS = 125;
     var CLEAR_MS = 240;
     var FUSE_MS = 58;
+    var FIZZ_FROM = 3;      // a bomb shakes through its last this many turns
 
     function build() {
         var size = Game.Board.size();
@@ -76,7 +77,15 @@ window.Game = window.Game || {};
         if (cell.x === litColumn) classes.push("is-column");
         if (litCell === id) classes.push("is-landing");
 
-        if (Game.Board.fuseAt(id) >= 0.6) classes.push("is-fizzing");
+        // a bomb near the end of its fuse shakes, and harder every turn:
+        // data-fuse is the turns it has left (css/game.css)
+        var left = Game.Board.fuseLeft(id);
+        if (left <= FIZZ_FROM) {
+            classes.push("is-fizzing");
+            if (tile.dataset.fuse !== String(left)) tile.dataset.fuse = left;
+        } else if (tile.dataset.fuse) {
+            delete tile.dataset.fuse;
+        }
 
         if (choosing && shown[id]) classes.push("is-pickable");
 

@@ -372,20 +372,57 @@
     transform: translateY(-2px) scale(1.04);
 }
 
+/* A bomb in its last three turns shakes — a tremor with three left, a rattle
+   with two, and with one a shudder you cannot miss. data-fuse is the turns
+   it has left (js/ui/boardview.js). */
 .tile.is-fizzing {
-    animation: fizz 0.5s ease-in-out infinite;
+    animation: fizz-3 0.6s ease-in-out infinite;
 }
 
-@keyframes fizz {
+.tile.is-fizzing[data-fuse="2"] {
+    animation: fizz-2 0.4s ease-in-out infinite;
+}
+
+.tile.is-fizzing[data-fuse="1"] {
+    animation: fizz-1 0.26s ease-in-out infinite;
+}
+
+@keyframes fizz-3 {
     0%,
     100% {
         transform: translate(0, 0);
     }
     25% {
-        transform: translate(-0.7px, 0.4px);
+        transform: translate(-0.6px, 0.35px);
     }
     75% {
-        transform: translate(0.7px, -0.4px);
+        transform: translate(0.6px, -0.35px);
+    }
+}
+
+@keyframes fizz-2 {
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+    25% {
+        transform: translate(-1.3px, 0.8px);
+    }
+    75% {
+        transform: translate(1.3px, -0.8px);
+    }
+}
+
+@keyframes fizz-1 {
+    0%,
+    100% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    25% {
+        transform: translate(-2.2px, 1.3px) rotate(-1.5deg);
+    }
+    75% {
+        transform: translate(2.2px, -1.3px) rotate(1.5deg);
     }
 }
 

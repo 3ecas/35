@@ -502,6 +502,15 @@ window.Game = window.Game || {};
             return Math.min(1, (cell.fuse || 0) / limit);
         },
 
+        /* turns a bomb has left before it goes off on its own; Infinity for
+           anything that is not a bomb on a fuse */
+        fuseLeft: function (id) {
+            var limit = Game.Config.game.bombFuse || 0;
+            var cell = cells[id];
+            if (!limit || !cell || cell.piece !== Game.Pieces.bomb.id) return Infinity;
+            return Math.max(0, limit - (cell.fuse || 0));
+        },
+
         wouldJoin: function (column, pieceId) {
             var spot = this.landing(column);
             if (!spot) return false;

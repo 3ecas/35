@@ -4,13 +4,15 @@ window.Game = window.Game || {};
    CHARGE VIEW
    -----------------------------------------------------------------------------
    The bomb beside the hand. A small square that fills like a glass: a level
-   that rises as the charge does, with a few square flecks drifting up through
-   it so the thing is visibly alive, and a pulse that never stops — a square
-   stroke born on the dial's edge in a flash, going out past it and fading as
-   it goes, one after another. White, faint and slow while the dial is
-   filling, and the fuller the clearer; black and quick once it is worth
-   pressing, and born in a white flash either way. It is meant to be read out of the corner of the eye — the
-   piece sitting on top is what you are actually looking at.
+   that rises as the charge does, with a drift of dust in every colour of the
+   wheel rising through it so the thing is visibly alive, and a pulse that
+   never stops — a square stroke born on the dial's edge in a flash, going
+   out past it and fading as it goes, one after another. White, faint and
+   slow while the dial is filling, and the fuller the clearer. Once it is
+   worth pressing the edge itself turns to the rainbow only 35 wears,
+   turning and pulsing, and the strokes going out carry it. It is meant to be
+   read out of the corner of the eye — the piece sitting on top is what you
+   are actually looking at.
 
    Any [data-charge] button gets this renderer, so a second dial would only
    need its markup.
@@ -26,32 +28,44 @@ window.Game = window.Game || {};
     var TRAVEL = [1.3, 0.7];
     var FLASH = 0.18;
 
+    // the ready edge: how fast the rainbow goes round, in turns a second, and
+    // how fast it pulses, in beats a second
+    var SPIN = 0.22;
+    var BEAT = 0.9;
+
     var dials = [];
     var still = false;
     var last = 0;
 
-    /* ---- the flecks, small enough to be dust ---------------------------------
-       Little squares, like everything else in the game: at four pixels a
-       drawing of the piece would be a smudge, and what survives at that size
-       is the square and nothing else. */
-    function fleck(ctx, x, y, r, turn) {
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(turn);
-        ctx.fillRect(-r / 2, -r / 2, r, r);
-        ctx.restore();
+    /* ---- the dust ------------------------------------------------------------
+       Plain dots, each in one colour of the wheel, drifting up through the
+       charge: at two pixels nothing finer than a dot survives anyway. */
+    function mote() {
+        var wheel = Game.Icons.wheel();
+        return {
+            x: 0.12 + Math.random() * 0.76,
+            y: Math.random(),
+            size: 1.3 + Math.random() * 1.3,
+            rise: 0.06 + Math.random() * 0.14,
+            glow: 0.4 + Math.random() * 0.6,
+            colour: wheel[Math.floor(Math.random() * (wheel.length - 1))].hex
+        };
     }
 
-    function mote() {
-        return {
-            x: 0.15 + Math.random() * 0.7,
-            y: Math.random(),
-            size: 1.6 + Math.random() * 1.5,
-            rise: 0.06 + Math.random() * 0.14,
-            turn: Math.random() * Math.PI,
-            twist: (Math.random() < 0.5 ? -1 : 1) * (0.3 + Math.random()),
-            glow: 0.3 + Math.random() * 0.7
-        };
+    /* the rainbow round the dial, turned to `angle`: a conic gradient where
+       the canvas can draw one, and where it cannot, the one colour of the
+       wheel that is at twelve o'clock right now */
+    function rainbow(ctx, cx, cy, angle) {
+        var wheel = Game.Icons.wheel();
+        if (!ctx.createConicGradient) {
+            var share = ((angle / (Math.PI * 2)) % 1 + 1) % 1;
+            return wheel[Math.floor(share * (wheel.length - 1))].hex;
+        }
+        var g = ctx.createConicGradient(angle - Math.PI / 2, cx, cy);
+        wheel.forEach(function (stop) {
+            g.addColorStop(Math.min(1, stop.at / 360), stop.hex);
+        });
+        return g;
     }
 
     function make(host) {
@@ -69,10 +83,12 @@ window.Game = window.Game || {};
             ready: false,
             motes: [],
             pulses: [],         // each is how far out it has gone, 0 to 1
-            wait: 0             // seconds until the next one is born
+            wait: 0,            // seconds until the next one is born
+            angle: 0,           // where the rainbow has turned to
+            beat: 0             // and where in its pulse the ready edge is
         };
 
-        for (var i = 0; i < 10; i++) one.motes.push(mote());
+        for (var i = 0; i < 14; i++) one.motes.push(mote());
         measure(one);
         return one;
     }
@@ -126,18 +142,35 @@ window.Game = window.Game || {};
             var m = one.motes[i];
             if (!still) {
                 m.y -= m.rise * gap * (one.ready ? 1.9 : 1);
-                m.turn += m.twist * gap;
                 if (m.y < 0) { one.motes[i] = mote(); one.motes[i].y = 1; continue; }
             }
             var y = top + span * m.y;
             if (y < level) continue;                 // only inside what is filled
 
-            ctx.globalAlpha = (one.ready ? 0.85 : 0.5) * m.glow;
-            ctx.fillStyle = one.ready ? "#fffdf0" : "#ffffff";
-            fleck(ctx, cx - r + span * m.x, y, m.size * (one.ready ? 1.2 : 1), m.turn);
+            var dot = m.size * (one.ready ? 1.25 : 1);
+            ctx.globalAlpha = (one.ready ? 0.95 : 0.7) * m.glow;
+            ctx.fillStyle = m.colour;
+            ctx.fillRect(cx - r + span * m.x - dot / 2, y - dot / 2, dot, dot);
         }
 
         ctx.restore();
+
+        // Ready: the edge is the rainbow, going round and pulsing — wider and
+        // brighter at the top of each beat — over the dial's own black edge.
+        var paint = one.ready ? one.lit : "#ffffff";
+        if (one.ready) {
+            if (!still) {
+                one.angle += gap * SPIN * Math.PI * 2;
+                one.beat += gap * BEAT * Math.PI * 2;
+            }
+            var swell = 0.5 + 0.5 * Math.sin(one.beat);
+            paint = rainbow(ctx, cx, cy, one.angle);
+
+            ctx.globalAlpha = 0.8 + 0.2 * swell;
+            ctx.lineWidth = 2.5 + 1.5 * swell;
+            ctx.strokeStyle = paint;
+            ring(ctx, cx, cy, r, 0);
+        }
 
         // The pulse. A new one is born on the edge whenever the last has had
         // its head start, so there is always one on its way out: faint while
@@ -167,11 +200,11 @@ window.Game = window.Game || {};
             var fade = 1 - out;
             var reach = out * (PAD - 2);
 
-            // white while filling, like the dial's own edge; the dial's black
-            // once it is ready — and the flash white either way
+            // white while filling, like the dial's own edge; the rainbow once
+            // it is ready — and the flash white either way
             ctx.globalAlpha = seen * fade * fade;
             ctx.lineWidth = 1 + 2 * fade;
-            ctx.strokeStyle = one.ready ? one.lit : "#ffffff";
+            ctx.strokeStyle = paint;
             ring(ctx, cx, cy, r, reach);
 
             if (out < FLASH) {
