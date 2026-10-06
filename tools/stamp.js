@@ -1,6 +1,6 @@
 /* Stamps a build id onto every local css/js URL in a build's index.html —
-   www/index.html for the apps, and both pages of the website (site/ and
-   site/play/) when given that folder instead: node tools/stamp.js site
+   www/index.html for the apps, or the website's when given its folder
+   instead: node tools/stamp.js site
 
    Two things make a rebuilt Capacitor app keep showing the previous version,
    and one stamp defeats both:

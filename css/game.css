@@ -112,10 +112,9 @@
     }
 }
 
-/* ---- the three buttons at the foot of the screen ---------------------------
-   How to play, sound, start over, centred just above the space kept for an
-   ad. Square like everything else on the board, and no chrome until a finger
-   is on one. */
+/* ---- the one button at the top left ----------------------------------------
+   It opens the menu. Square like everything else on the board, and no chrome
+   until a finger is on it. */
 
 .tools {
     position: fixed;
@@ -155,46 +154,179 @@
     transform: scale(0.94);
 }
 
-/* sound off: the crossed-out speaker, a shade quieter */
-.tool.is-off {
-    color: rgba(255, 255, 255, 0.55);
-}
+/* ---- the menu ---------------------------------------------------------------
+   Over the game dimmed, like how to play: the 35 at the top, a line, and a
+   column of square buttons — how to play, sound, start over — then, on the
+   web, the stores' badges and the privacy page. */
 
-/* start over, armed by a first tap: turned to white, turning back once, and
-   saying under it what the next tap will do (js/ui/roundview.js) */
-.tool.is-armed {
-    color: var(--ink);
-    background: #fff;
-}
-
-.tool.is-armed svg.icon {
-    animation: tool-turn 0.5s ease-out;
-}
-
-.tool__say {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
+.menu {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
     display: none;
-    flex-wrap: nowrap;
-    padding: 6px 8px;
+    place-items: center;
+    padding: calc(var(--bar) + var(--bar-top) + var(--safe-top) + 8px) 20px
+             calc(24px + var(--safe-bottom));
+    background: rgba(22, 26, 34, 0.88);
+    color: #fff;
+    overflow-y: auto;
+}
+
+.menu.is-open {
+    display: grid;
+    animation: over-in 0.22s ease;
+}
+
+.menu__shut {
+    position: fixed;
+    top: calc(var(--bar-top) + var(--safe-top));
+    left: calc(var(--frame-side) + var(--safe-left));
+    display: grid;
+    place-items: center;
+    width: var(--bar);
+    height: var(--bar);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+}
+
+.menu__shut svg.icon {
+    width: 24px;
+    height: 24px;
+}
+
+.menu__card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    width: min(300px, 100%);
+    text-align: center;
+}
+
+/* the top of the ladder, as on the icon */
+.menu__tile {
+    display: grid;
+    place-items: center;
+    width: 88px;
+    height: 88px;
+    background: var(--num);
+    color: #fff;
+}
+
+.menu__title {
+    display: flex;
+    font-size: 36px;
+}
+
+.menu__line {
+    margin: 0;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.menu__acts {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    margin-top: 6px;
+}
+
+.menu__act {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: 13px 16px;
+    border: 2px solid #fff;
+    background: transparent;
+    color: #fff;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+}
+
+.menu__act:hover,
+.menu__act:active {
     background: #fff;
     color: var(--ink);
+}
+
+/* sound off: a shade quieter */
+.menu__act.is-off {
+    border-color: rgba(255, 255, 255, 0.45);
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* start over, armed by a first tap: turned to white, saying what the next
+   tap will do (js/ui/roundview.js) */
+.menu__act.is-armed {
+    background: #fff;
+    color: var(--ink);
+}
+
+/* where to get the app: the stores' own badges, 40 tall as both require, dim
+   until the links are set */
+.menu__get {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.menu__get[hidden] {
+    display: none;
+}
+
+.menu__head {
+    margin: 0;
     font-size: 0.62rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.menu__stores {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.menu__store {
+    display: flex;
+    transition: opacity 0.16s ease;
+}
+
+.menu__store img {
+    display: block;
+    height: 40px;
+    width: auto;
+}
+
+.menu__store[aria-disabled="true"] {
+    opacity: 0.4;
     pointer-events: none;
 }
 
-.tool.is-armed .tool__say {
-    display: flex;
+.menu__marks {
+    max-width: 280px;
+    margin: 0;
+    font-size: 10px;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.45);
 }
 
-@keyframes tool-turn {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(-360deg);
-    }
+.menu__foot {
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.menu__foot a {
+    color: #fff;
 }
 
 /* ---- how to play ------------------------------------------------------------

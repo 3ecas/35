@@ -18,11 +18,8 @@
         <div class="backdrop" id="backdrop" aria-hidden="true"></div>
 
         <nav class="tools" aria-label="Game">
-            <button class="tool" id="howBtn" type="button" data-icon="help"
-                    aria-label="How to play"></button>
-            <button class="tool" type="button" data-sound aria-label="Sound"></button>
-            <button class="tool" id="restartBtn" type="button" data-icon="restart"
-                    aria-label="Start over" data-confirm="Tap again to start over"></button>
+            <button class="tool" id="menuBtn" type="button" data-icon="help"
+                    aria-label="Menu"></button>
         </nav>
 
         <main class="table">
@@ -47,6 +44,54 @@
             </div>
         </main>
 
+        <!-- The menu, behind the one button: how to play, sound, start over —
+             and, on the web, where to get the app, and the privacy page
+             (js/ui/menu.js). The stores' badges are their own artwork, used
+             as they supply it; they stay dim until the store links are set in
+             js/core/config.js. -->
+        <div class="menu" id="menu" aria-hidden="true">
+            <div class="menu__card" role="dialog" aria-modal="true" aria-label="Menu">
+                <button type="button" class="menu__shut" id="menuShut" data-icon="close"
+                        aria-label="Close"></button>
+                <div class="menu__tile num num-35" aria-hidden="true">
+                    <span class="menu__title" data-number="35"></span>
+                </div>
+                <p class="menu__line words" data-words="Three alike make the next number."></p>
+
+                <div class="menu__acts">
+                    <button type="button" class="menu__act words" id="howBtn"
+                            data-words="How to play"></button>
+                    <button type="button" class="menu__act words" data-sound
+                            aria-label="Sound"></button>
+                    <button type="button" class="menu__act words" id="restartBtn"
+                            aria-label="Start over" data-words="Start over"
+                            data-confirm="Tap again to start over"></button>
+                </div>
+
+                <div class="menu__get" id="menuGet">
+                    <p class="menu__head words" data-words="Get the app"></p>
+                    <div class="menu__stores">
+                        <a class="menu__store" href="#" data-store="ios" aria-disabled="true">
+                            <img src="img/app-store.svg" alt="Download on the App Store"
+                                 width="120" height="40" />
+                        </a>
+                        <a class="menu__store" href="#" data-store="android" aria-disabled="true">
+                            <img src="img/google-play.svg" alt="Get it on Google Play"
+                                 width="135" height="40" />
+                        </a>
+                    </div>
+                    <p class="menu__marks">Apple, the Apple logo and App Store are trademarks of
+                       Apple Inc. Google Play and the Google Play logo are trademarks of
+                       Google LLC.</p>
+                </div>
+
+                <p class="menu__foot">
+                    <a href="privacy.html" data-link="privacy">Privacy</a>
+                    · <a href="https://github.com/3ecas/35" data-link="source">Source</a>
+                </p>
+            </div>
+        </div>
+
         <div class="how" id="how"></div>
         <div class="over" id="over"></div>
 
@@ -67,6 +112,7 @@
         <script src="js/ui/effects.js"></script>
         <script src="js/ui/boardview.js"></script>
         <script src="js/ui/howto.js"></script>
+        <script src="js/ui/menu.js"></script>
         <script src="js/ui/roundview.js"></script>
         <script src="js/ui/scoreview.js"></script>
         <script src="js/ui/chargeview.js"></script>

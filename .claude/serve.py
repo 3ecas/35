@@ -2,7 +2,7 @@
 
 Serves the checkout — the game at / — or, given a folder as a second
 argument, that folder: python3 .claude/serve.py 4173 site shows the built
-website, with the game at /play/.
+website, the game at / and the privacy page beside it.
 
 Safari on a phone will hold onto a cached config.js across a reload, which
 during testing looks exactly like a change that did not work. no-store is

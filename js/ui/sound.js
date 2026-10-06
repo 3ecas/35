@@ -192,7 +192,7 @@ window.Game = window.Game || {};
         if (!node) return;
 
         function paint() {
-            node.innerHTML = Game.Icons.svg(on ? "sound" : "mute");
+            node.innerHTML = Game.Icons.words(on ? "Sound on" : "Sound off");
             node.setAttribute("aria-pressed", on ? "false" : "true");
             node.setAttribute(
                 "aria-label",
