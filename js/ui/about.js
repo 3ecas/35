@@ -1,13 +1,14 @@
 window.Game = window.Game || {};
 
 /* =============================================================================
-   MENU
+   ABOUT
    -----------------------------------------------------------------------------
-   The one button at the top left opens this: how to play, sound, start over,
-   and — on the web — where to get the app, and the privacy page. In the apps
-   the stores are left out: you are already there, and a store would rather
-   not be shown the other one. The words are the game's own square capitals,
-   and the 35 at the top is the top of the ladder, as on the icon.
+   The fourth button at the top left, on the web only, opens this: what the
+   game is, where to get the app, and the privacy page — what a landing page
+   would say, over the game dimmed. The apps do not show it: you are already
+   there, and a store would rather not be shown the other one; their listings
+   carry the privacy link. The words are the game's own square capitals, and
+   the 35 at the top is the top of the ladder, as on the icon.
    ============================================================================= */
 
 (function () {
@@ -31,23 +32,13 @@ window.Game = window.Game || {};
             el.innerHTML = Game.Icons.number(el.getAttribute("data-number"));
         });
 
+        // the stores: live only once there is somewhere to go
         var links = Game.Config.links || {};
-        var inApp = native();
-
-        // the stores: only on the web, and live only once there is somewhere
-        // to go
-        var get = document.getElementById("menuGet");
-        if (get) get.hidden = inApp;
         all("[data-store]", function (el) {
             var url = links[el.getAttribute("data-store")];
             if (!url) return;
             el.href = url;
             el.removeAttribute("aria-disabled");
-        });
-
-        // the privacy page: next door on the web, out in the browser in the apps
-        all("[data-link=privacy]", function (el) {
-            if (inApp && links.privacy) el.href = links.privacy;
         });
         all("[data-link=source]", function (el) {
             if (links.source) el.href = links.source;
@@ -55,34 +46,32 @@ window.Game = window.Game || {};
     }
 
     function keys(event) {
-        if (event.key === "Escape") Game.Menu.close();
+        if (event.key === "Escape") Game.About.close();
     }
 
-    Game.Menu = {
+    Game.About = {
         init: function () {
-            host = document.getElementById("menu");
-            if (!host) return;
+            host = document.getElementById("about");
+            var button = document.getElementById("aboutBtn");
+            if (!host || !button) return;
+
+            // not in the apps
+            if (native()) {
+                button.hidden = true;
+                return;
+            }
 
             fill();
             Game.Icons.hydrate(host);
 
-            var button = document.getElementById("menuBtn");
-            if (button) button.addEventListener("click", Game.Menu.open);
+            button.addEventListener("click", Game.About.open);
 
             host.addEventListener("click", function (event) {
                 // the cross, or a tap on the dark around the card, closes it
-                if (event.target.closest("#menuShut") || event.target === host) {
-                    Game.Menu.close();
+                if (event.target.closest("#aboutShut") || event.target === host) {
+                    Game.About.close();
                 }
             });
-
-            var how = document.getElementById("howBtn");
-            if (how) {
-                how.addEventListener("click", function () {
-                    Game.Menu.close();
-                    Game.HowTo.open();
-                });
-            }
         },
 
         open: function () {
@@ -91,7 +80,6 @@ window.Game = window.Game || {};
             host.classList.add("is-open");
             host.setAttribute("aria-hidden", "false");
             document.addEventListener("keydown", keys);
-            Game.Events.emit("menu:opened", {});
         },
 
         close: function () {
@@ -100,7 +88,6 @@ window.Game = window.Game || {};
             host.classList.remove("is-open");
             host.setAttribute("aria-hidden", "true");
             document.removeEventListener("keydown", keys);
-            Game.Events.emit("menu:closed", {});
         },
 
         isOpen: function () {

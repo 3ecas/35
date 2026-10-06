@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
     Game.Shatter.init();
 
     Game.BoardView.init();
-    Game.Menu.init();
+    Game.About.init();
     Game.RoundView.init();
     Game.ScoreView.init();
 

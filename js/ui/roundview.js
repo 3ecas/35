@@ -3,9 +3,11 @@ window.Game = window.Game || {};
 /* =============================================================================
    ROUND VIEW
    -----------------------------------------------------------------------------
-   The piece in hand, the card at the end of a run, and start over, which
-   sits in the menu (js/ui/menu.js) and takes two taps mid-run: the first
-   arms it and changes its words to say what the second will do.
+   The piece in hand, the card at the end of a run, and the two buttons at the
+   top left that belong to the run: how to play, and start over, which takes
+   two taps mid-run — the first arms it and says under it what the second
+   will do. (The third button there, sound, is painted by js/ui/sound.js, and
+   the fourth, about, by js/ui/about.js.)
    ============================================================================= */
 
 (function () {
@@ -86,7 +88,6 @@ window.Game = window.Game || {};
         armed = null;
         restartBtn.classList.remove("is-armed");
         restartBtn.setAttribute("aria-label", "Start over");
-        restartBtn.innerHTML = Game.Icons.words(restartBtn.getAttribute("data-words"));
     }
 
     function startOver() {
@@ -95,14 +96,12 @@ window.Game = window.Game || {};
 
         if (!worth || armed) {
             disarm();
-            if (Game.Menu) Game.Menu.close();
             Game.Round.start();
             return;
         }
 
         restartBtn.classList.add("is-armed");
         restartBtn.setAttribute("aria-label", restartBtn.getAttribute("data-confirm"));
-        restartBtn.innerHTML = Game.Icons.words(restartBtn.getAttribute("data-confirm"));
         armed = window.setTimeout(disarm, ARM_MS);
     }
 
@@ -112,10 +111,20 @@ window.Game = window.Game || {};
             overHost = document.getElementById("over");
             restartBtn = document.getElementById("restartBtn");
 
+            var howBtn = document.getElementById("howBtn");
+            if (howBtn) {
+                howBtn.addEventListener("click", function () {
+                    disarm();
+                    Game.HowTo.open();
+                });
+            }
+
             if (restartBtn) {
+                // what the second tap does, shown under the button once armed
+                restartBtn.insertAdjacentHTML("beforeend",
+                    '<span class="tool__say words" aria-hidden="true">' +
+                    Game.Icons.words(restartBtn.getAttribute("data-confirm")) + "</span>");
                 restartBtn.addEventListener("click", startOver);
-                // a second tap starts over; closing the menu takes the first back
-                Game.Events.on("menu:closed", disarm);
             }
 
             Game.Events.on("game:started", function () {

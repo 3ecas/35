@@ -1,13 +1,11 @@
 window.Game = window.Game || {};
 
 Game.Config = {
-    // Where the menu points. The store links are empty until the apps are
-    // published — the badges stay dim until then. The privacy page is on the
-    // website; the apps open it in the browser, the web version next door.
+    // Where the about panel points (js/ui/about.js). The store links are
+    // empty until the apps are published — the badges stay dim until then.
     links: {
         ios: "",
         android: "",
-        privacy: "https://3ecas.github.io/35/privacy.html",
         source: "https://github.com/3ecas/35"
     },
 

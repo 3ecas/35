@@ -112,9 +112,10 @@
     }
 }
 
-/* ---- the one button at the top left ----------------------------------------
-   It opens the menu. Square like everything else on the board, and no chrome
-   until a finger is on it. */
+/* ---- the buttons at the top left ---------------------------------------------
+   How to play, sound, start over — and, on the web, about the game. Square
+   like everything else on the board, and no chrome until a finger is on one.
+   In the apps the fourth is hidden (js/ui/about.js). */
 
 .tools {
     position: fixed;
@@ -154,12 +155,58 @@
     transform: scale(0.94);
 }
 
-/* ---- the menu ---------------------------------------------------------------
-   Over the game dimmed, like how to play: the 35 at the top, a line, and a
-   column of square buttons — how to play, sound, start over — then, on the
-   web, the stores' badges and the privacy page. */
+.tool[hidden] {
+    display: none;
+}
 
-.menu {
+/* sound off: the crossed-out speaker, a shade quieter */
+.tool.is-off {
+    color: rgba(255, 255, 255, 0.55);
+}
+
+/* start over, armed by a first tap: turned to white, turning back once, and
+   saying under it what the next tap will do (js/ui/roundview.js) */
+.tool.is-armed {
+    color: var(--ink);
+    background: #fff;
+}
+
+.tool.is-armed svg.icon {
+    animation: tool-turn 0.5s ease-out;
+}
+
+.tool__say {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    display: none;
+    flex-wrap: nowrap;
+    padding: 6px 8px;
+    background: #fff;
+    color: var(--ink);
+    font-size: 0.62rem;
+    pointer-events: none;
+}
+
+.tool.is-armed .tool__say {
+    display: flex;
+}
+
+@keyframes tool-turn {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(-360deg);
+    }
+}
+
+/* ---- about the game -----------------------------------------------------------
+   Behind the fourth button, on the web: over the game dimmed, like how to
+   play — the 35 at the top, what the game is, the stores' badges, and the
+   privacy page. */
+
+.about {
     position: fixed;
     inset: 0;
     z-index: 50;
@@ -172,12 +219,12 @@
     overflow-y: auto;
 }
 
-.menu.is-open {
+.about.is-open {
     display: grid;
     animation: over-in 0.22s ease;
 }
 
-.menu__shut {
+.about__shut {
     position: fixed;
     top: calc(var(--bar-top) + var(--safe-top));
     left: calc(var(--frame-side) + var(--safe-left));
@@ -192,84 +239,51 @@
     cursor: pointer;
 }
 
-.menu__shut svg.icon {
+.about__shut svg.icon {
     width: 24px;
     height: 24px;
 }
 
-.menu__card {
+.about__card {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 14px;
-    width: min(300px, 100%);
+    width: min(320px, 100%);
     text-align: center;
 }
 
 /* the top of the ladder, as on the icon */
-.menu__tile {
+.about__tile {
     display: grid;
     place-items: center;
-    width: 88px;
-    height: 88px;
+    width: 96px;
+    height: 96px;
     background: var(--num);
     color: #fff;
 }
 
-.menu__title {
+.about__title {
     display: flex;
-    font-size: 36px;
+    font-size: 40px;
 }
 
-.menu__line {
+.about__line {
     margin: 0;
     font-size: 0.72rem;
-    color: rgba(255, 255, 255, 0.82);
-}
-
-.menu__acts {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
-    margin-top: 6px;
-}
-
-.menu__act {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    padding: 13px 16px;
-    border: 2px solid #fff;
-    background: transparent;
     color: #fff;
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
 }
 
-.menu__act:hover,
-.menu__act:active {
-    background: #fff;
-    color: var(--ink);
-}
-
-/* sound off: a shade quieter */
-.menu__act.is-off {
-    border-color: rgba(255, 255, 255, 0.45);
-    color: rgba(255, 255, 255, 0.6);
-}
-
-/* start over, armed by a first tap: turned to white, saying what the next
-   tap will do (js/ui/roundview.js) */
-.menu__act.is-armed {
-    background: #fff;
-    color: var(--ink);
+.about__sub {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.78);
 }
 
 /* where to get the app: the stores' own badges, 40 tall as both require, dim
    until the links are set */
-.menu__get {
+.about__get {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -278,40 +292,36 @@
     margin-top: 10px;
 }
 
-.menu__get[hidden] {
-    display: none;
-}
-
-.menu__head {
+.about__head {
     margin: 0;
     font-size: 0.62rem;
     color: rgba(255, 255, 255, 0.7);
 }
 
-.menu__stores {
+.about__stores {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 10px;
 }
 
-.menu__store {
+.about__store {
     display: flex;
     transition: opacity 0.16s ease;
 }
 
-.menu__store img {
+.about__store img {
     display: block;
     height: 40px;
     width: auto;
 }
 
-.menu__store[aria-disabled="true"] {
+.about__store[aria-disabled="true"] {
     opacity: 0.4;
     pointer-events: none;
 }
 
-.menu__marks {
+.about__marks {
     max-width: 280px;
     margin: 0;
     font-size: 10px;
@@ -319,13 +329,14 @@
     color: rgba(255, 255, 255, 0.45);
 }
 
-.menu__foot {
-    margin: 8px 0 0;
+.about__foot {
+    margin: 0;
     font-size: 13px;
+    line-height: 1.5;
     color: rgba(255, 255, 255, 0.7);
 }
 
-.menu__foot a {
+.about__foot a {
     color: #fff;
 }
 

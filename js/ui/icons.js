@@ -23,7 +23,12 @@ window.Game = window.Game || {};
             '<path d="M8.5 9.5V6h7v6.5H12V15"/>' +
             '<path d="M11 18h2v2h-2z" fill="currentColor" stroke="none"/>',
 
-        close: '<path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/>'
+        close: '<path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/>',
+
+        // about the game, on the web: three sliders, each with its square knob
+        settings:
+            '<path d="M4 7h16M4 12h16M4 17h16"/>' +
+            '<path d="M8 5h3v4H8zM14 10h3v4h-3zM9 15h3v4H9z" fill="currentColor" stroke="none"/>'
     };
 
     /* ---- the numbers ------------------------------------------------------

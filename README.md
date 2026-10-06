@@ -46,14 +46,15 @@ number goes.
 Three 35s have nowhere to go: they cash in for double and leave the board.
 Getting to 35 is hard; past it there is no ceiling on the score.
 
-The game opens on the board — the run left off last time, or a new one. One
-button at the top left opens the menu: how to play, sound, and start over
-(which takes two taps mid-run, so a stray one never throws a run away) and,
-on the web, where to get the app and the privacy page. The score and the
-best under it sit centred, halfway between the top of the screen and the
-grid; the piece in hand and the bomb sit side by side under it. When the
-board fills, the end card shows "game over", the run's score, and the best
-under it; a tap anywhere starts the next run.
+There is no menu. The game opens on the board — the run left off last time,
+or a new one. How to play, sound and start over sit at the top left (start over
+takes two taps mid-run, so a stray one never throws a run away); on the web a
+fourth button there opens a panel about the game — what it is, where to get
+the app, and the privacy page. The score and the best under it sit centred,
+halfway between the top of the screen and the grid; the piece in hand and the
+bomb sit side by side under it. When the board fills, the end card shows "game
+over", the run's score, and the best under it; a tap anywhere starts the next
+run.
 
 **How to play** is seven short pages, a line each, played out on a little grid
 of the game's own pieces — dropping, three making one, chains, numbers falling
@@ -69,7 +70,7 @@ first time it opens only from the ? button.
 
 Every piece is a flat square with its number in white, in block digits built
 from straight bars — no curves, no outline. The grid is white; the score, the
-best and the menu button are white and drawn the same way, and the few words
+best and the buttons are white and drawn the same way, and the few words
 the game says are square capitals on a 5 × 7 grid. Behind it all,
 the colours of the numbers on the board — muted, so the tiles stand out —
 blend and drift slowly across the screen. The colours go up the ladder in
@@ -102,7 +103,7 @@ index.html         the game
 css/
   theme.css        page tokens, reset, base type
   components.css   the points that fly to the score
-  game.css         the board, the hand, the menu, how-to, end card
+  game.css         the board, the hand, the buttons, how-to, about, end card
   charges.css      the bomb dial
   backdrop.css     the board's colours drifting behind everything
   numbers.css      the palette, the flat square pieces, and the two diamonds
@@ -112,7 +113,7 @@ js/
   systems/         state and rules — board, round, charges; never touch the DOM
   ui/              listen and draw — never edit state directly
   pages/game.js    boot
-img/               the stores' badges, as they supply them, for the menu
+img/               the stores' badges, as they supply them, for the about panel
 web/
   privacy.html     the privacy policy both stores link to
   site.css, site.js
@@ -147,13 +148,12 @@ in `localStorage` under `thirtyfive.save`; the sound setting under
 
 ## The website
 
-The website is the game: the same `index.html` at `/`, with the menu
-carrying what a landing page would — a line on what it is, how to play,
-where to get the app — and, beside it, `web/privacy.html`, the privacy
-policy both stores ask for a link to even though the game collects nothing.
-Once the site is live that link is `https://<your pages domain>/privacy.html`;
-`links.privacy` in `js/core/config.js` holds it, and the apps open it in the
-browser from their menu.
+The website is the game: the same `index.html` at `/`, with a fourth button
+at the top left — on the web only — opening a panel that carries what a
+landing page would: a line on what the game is, where to get the app, and
+the privacy page. Beside it sits `web/privacy.html`, the privacy policy both
+stores ask for a link to even though the game collects nothing. Once the
+site is live that link is `https://<your pages domain>/privacy.html`.
 
 ```bash
 npm run serve:site
@@ -166,15 +166,16 @@ and script URL stamped — and serves it at http://localhost:4173. Pushing to
 thing merged.
 
 When the apps are published, put their store links into `links` in
-`js/core/config.js` and the two badges in the menu come alive. The badges
+`js/core/config.js` and the two badges in the panel come alive. The badges
 are the stores' own artwork, used as they supply it and never redrawn:
 `img/app-store.svg` is Apple's "Download on the App Store" and
 `img/google-play.svg` Google's "Get it on Google Play". Both companies ask
 that a badge be shown no smaller than 40 pixels tall, with clear space
 round it, and only as a link to the app's own store page — which is why
 the two are dim until the links are set — and that the trademark lines
-under them go with them. The apps leave the badges out altogether: you are
-already in the store's app, and neither store cares to see the other.
+under them go with them. The apps leave the panel out altogether: you are
+already in the store's app, and neither store cares to see the other; their
+listings carry the privacy link.
 
 ## Build for the App Store
 
@@ -308,7 +309,7 @@ clear of most of the rulebook; what remains, and where it stands:
   Xcode for iOS, `versionName` and `versionCode` in
   `android/app/build.gradle` for Android.
 - Play a run on a real device from the store build, not the browser: a merge,
-  a chain, the bomb, infinity, the menu's how to play, sound and start over, and a
+  a chain, the bomb, infinity, the tutorial from `?`, sound, start over, and a
   reload mid-run to see the run come back.
 - Screenshots come from a device or simulator running the store build; the
   stores want them at the device's own size.
