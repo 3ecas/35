@@ -33,11 +33,11 @@ const CROWDED = 14;              // free squares at or under this: spend the bom
 /* ---- the settings to try ----------------------------------------------- */
 const SETTINGS = {
     base: {
-        note: "as the game is: the seam holds at 25, 34 is dealt once made, and from 25 the bomb fills in 15 and infinity comes every 50",
+        note: "as the game is: the seam holds at 25, 34 is dealt once made, and from 25 infinity comes every 65",
         apply: function () {}
     },
     nolate: {
-        note: "the same, but no late-game help: the bomb at 20 and infinity every 80 throughout",
+        note: "the same, but no late-game help: infinity every 80 throughout",
         apply: function (Game) { Game.Config.game.late = null; }
     },
     before: {

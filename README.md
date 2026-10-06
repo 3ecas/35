@@ -33,16 +33,15 @@ often, the higher you climb: one every five drops from 10, one every three from
 when the board is full.
 
 **The bomb — the black 0.** The dial beside the hand
-fills with the merges your moves make — twenty fill it, fifteen once you have
-made a 25 — and keeps its charge if you leave mid-run. When it is full, tap it
-and pick a column to drop a bomb.
+fills with the merges your moves make — twenty fill it — and keeps its charge
+if you leave mid-run. When it is full, tap it and pick a column to drop a bomb.
 It joins nothing; a merge beside it, or its own five-turn fuse, sets it off,
 and the eight squares around it go with it.
 
 **Infinity — the white diamond with the ∞ on it.** It falls in now and then
-once a run passes 6,250 points — every eighty drops, every fifty once you have
-made a 25. A merge beside it, or a blast over it, sets it off: every piece on
-the board rings, you tap a number, and every one of that number goes.
+once a run passes 6,250 points — every eighty drops, every sixty-five once you
+have made a 25. A merge beside it, or a blast over it, sets it off: every piece
+on the board rings, you tap a number, and every one of that number goes.
 
 Three 35s have nowhere to go: they cash in for double and leave the board.
 Getting to 35 is hard; past it there is no ceiling on the score.

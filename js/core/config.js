@@ -82,13 +82,14 @@ Game.Config = {
         infinityEvery: 80,
 
         // The late game: from the rung the seam reaches its full strength
-        // at, the two ways of making room come oftener — the dial fills in
-        // fewer merges, and infinity falls in every fewer drops. Below it
-        // the game is as it was.
+        // at, infinity falls in every fewer drops. The dial is set here too,
+        // so it can be eased when the climb needs it; at 20 it is the same
+        // as below. (At 15 and 50, 13% of the bot's runs reached 35 — too
+        // easy; tools/sim.js.)
         late: {
             from: 25,
-            bombPace: 15,
-            infinityEvery: 50
+            bombPace: 20,
+            infinityEvery: 65
         }
     }
 };
