@@ -4,7 +4,8 @@ window.Game = window.Game || {};
     var host = null;
     var tiles = [];
     var shown = [];
-    var choosing = false;
+    var choosing = false;   // infinity's sweep: name a number
+    var aiming = false;     // the bomb in hand: pick a column
     var litColumn = -1;
     var litCell = -1;
     var litTimer = null;
@@ -23,6 +24,7 @@ window.Game = window.Game || {};
         var size = Game.Board.size();
         host.style.setProperty("--cols", size.cols);
         host.style.setProperty("--rows", size.rows);
+        tiles.forEach(unglow);
         host.innerHTML = "";
         tiles = [];
         shown = [];
@@ -41,10 +43,48 @@ window.Game = window.Game || {};
         paintBoard(Game.Board.snapshot());
     }
 
+    /* A bomb on the board carries the bomb's light (js/ui/pulse.js), the
+       same as the dial when it is ready: a canvas over the tile, a little
+       wider than it, drawn as long as the bomb stands there. */
+    var GLOW_PAD = 12;
+
+    function glow(tile) {
+        var canvas = document.createElement("canvas");
+        canvas.className = "tile__glow";
+        canvas.setAttribute("aria-hidden", "true");
+        tile.appendChild(canvas);
+        if (!canvas.getContext) return;
+
+        tile.glow = Game.Pulse.make(canvas, true, function (one, gap) {
+            var ctx = one.ctx;
+            var cx = one.wide / 2;
+            var cy = one.tall / 2;
+            var half = Math.min(one.wide, one.tall) / 2 - GLOW_PAD;
+
+            ctx.clearRect(0, 0, one.wide, one.tall);
+            var paint = Game.Pulse.edge(one, cx, cy, half, gap);
+            Game.Pulse.pulses(one, cx, cy, half, GLOW_PAD - 2, gap, true, paint, 1);
+
+            // the dust, inside the diamond only
+            ctx.save();
+            Game.Pulse.outline(ctx, cx, cy, half, 0, true);
+            ctx.clip();
+            Game.Pulse.dust(one, gap, cx - half, cy - half, half * 2, half * 2, -Infinity, true);
+            ctx.restore();
+        });
+    }
+
+    function unglow(tile) {
+        if (!tile.glow) return;
+        Game.Pulse.drop(tile.glow);
+        tile.glow = null;
+    }
+
     function paintContents(id, piece) {
         var tile = tiles[id];
         if (!tile || shown[id] === piece) return;
         shown[id] = piece;
+        unglow(tile);
 
         if (!piece) {
             tile.innerHTML = "";
@@ -59,6 +99,8 @@ window.Game = window.Game || {};
         tile.innerHTML =
             '<span class="tile__art">' + Game.Icons.svg(art.icon) + "</span>";
         tile.setAttribute("aria-label", art.name);
+
+        if (piece === Game.Pieces.bomb.id) glow(tile);
     }
 
     function paintState(id) {
@@ -87,7 +129,14 @@ window.Game = window.Game || {};
             delete tile.dataset.fuse;
         }
 
-        if (choosing && shown[id]) classes.push("is-pickable");
+        // what the board is waiting for: with the bomb in hand, the square it
+        // would land on in each column; with a sweep owed, every piece
+        if (aiming) {
+            var spot = Game.Board.landing(cell.x);
+            if (spot && spot.id === id) classes.push("is-aim");
+        } else if (choosing && shown[id]) {
+            classes.push("is-pickable");
+        }
 
         var next = classes.join(" ");
         if (tile.className !== next) tile.className = next;
@@ -103,6 +152,8 @@ window.Game = window.Game || {};
     }
 
     function paintHover() {
+        host.classList.toggle("is-aiming", aiming);
+        host.classList.toggle("is-choosing", choosing && !aiming);
         shown.forEach(function (piece, id) {
             paintState(id);
         });
@@ -421,6 +472,12 @@ window.Game = window.Game || {};
 
             Game.Events.on("game:started", function () {
                 choosing = false;
+                aiming = false;
+            });
+
+            Game.Events.on("charge:armed", function (detail) {
+                aiming = !!detail.name;
+                paintHover();
             });
 
             Game.Events.on("game:rain", function (detail) {

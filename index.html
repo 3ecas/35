@@ -33,6 +33,9 @@
                 <div class="scoreboard" id="scoreboard" aria-live="off">
                     <span class="scoreboard__value"></span>
                     <span class="scoreboard__best"></span>
+                    <!-- in the best's place while the game waits for a tap:
+                         a column for the bomb, a number for infinity -->
+                    <span class="scoreboard__ask words" aria-live="polite"></span>
                 </div>
 
                 <div class="board" id="board" aria-label="Board"></div>
@@ -110,6 +113,7 @@
         <script src="js/ui/toast.js"></script>
         <script src="js/ui/shatter.js"></script>
         <script src="js/ui/effects.js"></script>
+        <script src="js/ui/pulse.js"></script>
         <script src="js/ui/boardview.js"></script>
         <script src="js/ui/howto.js"></script>
         <script src="js/ui/about.js"></script>

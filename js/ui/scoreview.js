@@ -4,6 +4,10 @@ window.Game = window.Game || {};
     var host = null;
     var valueEl = null;
     var bestEl = null;
+    var askEl = null;
+
+    var ASK_COLUMN = "Pick a column";
+    var ASK_NUMBER = "Tap a number. All of them go";
 
     var shown = 0;
     var target = 0;
@@ -62,6 +66,14 @@ window.Game = window.Game || {};
         frame = window.requestAnimationFrame(step);
     }
 
+    /* what the game is waiting for, in the best's place under the score:
+       nothing, a column for the bomb in hand, or a number for infinity */
+    function ask(text) {
+        if (!askEl) return;
+        askEl.innerHTML = text ? Game.Icons.words(text) : "";
+        host.classList.toggle("is-asking", !!text);
+    }
+
     function pop(points) {
         if (!valueEl) return;
         var weight = Math.min(1, points / 3000);
@@ -79,6 +91,21 @@ window.Game = window.Game || {};
 
             valueEl = host.querySelector(".scoreboard__value");
             bestEl = host.querySelector(".scoreboard__best");
+            askEl = host.querySelector(".scoreboard__ask");
+
+            // the bomb taken in hand asks for a column; a sweep owed asks for
+            // a number; either answered, the best comes back
+            Game.Events.on("charge:armed", function (detail) {
+                if (detail.name) ask(ASK_COLUMN);
+                else if (Game.Board.owes() <= 0) ask(null);
+                else ask(ASK_NUMBER);
+            });
+            Game.Events.on("game:choosing", function () {
+                if (!(Game.Charges && Game.Charges.armed())) ask(ASK_NUMBER);
+            });
+            Game.Events.on("game:chosen", function () {
+                ask(null);
+            });
 
             Game.Events.on("game:started", function () {
                 era += 1;
@@ -97,6 +124,7 @@ window.Game = window.Game || {};
 
                 paint();
                 paintBest();
+                ask(null);
             });
 
             Game.Events.on("board:merged", function (detail) {

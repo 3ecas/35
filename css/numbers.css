@@ -112,16 +112,29 @@
     box-shadow: inset 0 0 0 2px var(--accent);
 }
 
-/* Rings round a piece are drawn in ink rather than the accent green: the
-   first rungs are green themselves, and a green ring round a green tile is
-   gone. The one that matters most is naming a number for infinity — every
-   piece on the board rings, and that ring is the only thing asking for a tap. */
+/* Rings round a piece are drawn in white and ink rather than the accent
+   green: the first rungs are green themselves, and a green ring round a
+   green tile is gone. The one that matters most is naming a number for
+   infinity — every piece on the board rings, and that ring is the only thing
+   asking for a tap, so it is bold, and it breathes. */
 .tile.num.is-pickable {
-    box-shadow: 0 0 0 2px var(--ink);
+    box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--ink);
+    animation: pick-breathe 1s ease-in-out infinite;
 }
 
 .tile.num.is-pickable:hover {
-    box-shadow: 0 0 0 3px var(--ink);
+    box-shadow: 0 0 0 3px #fff, 0 0 0 7px var(--ink);
+}
+
+/* the ring swells rather than the piece moving, so a tap always lands */
+@keyframes pick-breathe {
+    0%,
+    100% {
+        box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--ink);
+    }
+    50% {
+        box-shadow: 0 0 0 3px #fff, 0 0 0 8px var(--ink);
+    }
 }
 
 .slot.num.is-picked {
