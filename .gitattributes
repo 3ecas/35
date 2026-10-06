@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Windows batch files keep their own line endings: the Gradle wrapper is one
+*.bat text eol=crlf
