@@ -25,6 +25,7 @@ window.Game = window.Game || {};
         host.style.setProperty("--cols", size.cols);
         host.style.setProperty("--rows", size.rows);
         tiles.forEach(unglow);
+        stopSparks();
         host.innerHTML = "";
         tiles = [];
         shown = [];
@@ -43,11 +44,9 @@ window.Game = window.Game || {};
         paintBoard(Game.Board.snapshot());
     }
 
-    /* A bomb on the board carries the bomb's light (js/ui/pulse.js), the
-       same as the dial when it is ready: a canvas over the tile, a little
-       wider than it, drawn as long as the bomb stands there. */
-    var GLOW_PAD = 12;
-
+    /* A bomb on the board has rainbow dust drifting up over it, as the dial
+       has inside (js/ui/pulse.js): a canvas over the tile, drawn as long as
+       the bomb stands there. */
     function glow(tile) {
         var canvas = document.createElement("canvas");
         canvas.className = "tile__glow";
@@ -55,23 +54,84 @@ window.Game = window.Game || {};
         tile.appendChild(canvas);
         if (!canvas.getContext) return;
 
-        tile.glow = Game.Pulse.make(canvas, true, function (one, gap) {
-            var ctx = one.ctx;
-            var cx = one.wide / 2;
-            var cy = one.tall / 2;
-            var half = Math.min(one.wide, one.tall) / 2 - GLOW_PAD;
-
-            ctx.clearRect(0, 0, one.wide, one.tall);
-            var paint = Game.Pulse.edge(one, cx, cy, half, gap);
-            Game.Pulse.pulses(one, cx, cy, half, GLOW_PAD - 2, gap, true, paint, 1);
-
-            // the dust, inside the diamond only
-            ctx.save();
-            Game.Pulse.outline(ctx, cx, cy, half, 0, true);
-            ctx.clip();
-            Game.Pulse.dust(one, gap, cx - half, cy - half, half * 2, half * 2, -Infinity, true);
-            ctx.restore();
+        tile.glow = Game.Pulse.make(canvas, false, function (one, gap) {
+            one.ctx.clearRect(0, 0, one.wide, one.tall);
+            Game.Pulse.dust(one, gap, 0, 0, one.wide, one.tall, -Infinity, true);
         });
+    }
+
+    /* While the board waits for a tap, green runs along its lines: particles
+       on the strokes of the grid, under the tiles (js/ui/pulse.js draws the
+       frames). */
+    var sparks = null;
+
+    function lines() {
+        var style = getComputedStyle(host);
+        var pad = parseFloat(style.paddingLeft) || 0;
+        var gap = parseFloat(style.columnGap || style.gap) || 0;
+        var size = Game.Board.size();
+        var tile = (host.clientWidth - 2 * pad - (size.cols - 1) * gap) / size.cols;
+        var step = tile + gap;
+        var across = [];
+        var down = [];
+        for (var c = 0; c <= size.cols; c++) across.push(pad - gap / 2 + c * step);
+        for (var r = 0; r <= size.rows; r++) down.push(pad - gap / 2 + r * step);
+        return { across: across, down: down, span: { x: across[0], y: down[0], w: across[size.cols] - across[0], h: down[size.rows] - down[0] } };
+    }
+
+    function spark(grid) {
+        var vertical = Math.random() < 0.5;
+        var lane = vertical ? grid.across : grid.down;
+        return {
+            vertical: vertical,
+            at: lane[Math.floor(Math.random() * lane.length)],
+            along: Math.random(),
+            speed: (0.08 + Math.random() * 0.16) * (Math.random() < 0.5 ? -1 : 1),
+            size: 2 + Math.random() * 2.5,
+            age: Math.random(),
+            life: 1.2 + Math.random() * 1.4
+        };
+    }
+
+    function startSparks() {
+        if (sparks) return;
+        var canvas = document.createElement("canvas");
+        canvas.className = "board__sparks";
+        canvas.setAttribute("aria-hidden", "true");
+        host.insertBefore(canvas, host.firstChild);
+        if (!canvas.getContext) return;
+
+        var grid = lines();
+        var motes = [];
+        for (var i = 0; i < 64; i++) motes.push(spark(grid));
+
+        sparks = Game.Pulse.make(canvas, false, function (one, gap) {
+            var ctx = one.ctx;
+            ctx.clearRect(0, 0, one.wide, one.tall);
+            for (var k = 0; k < motes.length; k++) {
+                var m = motes[k];
+                if (!Game.Pulse.still()) {
+                    m.age += gap;
+                    m.along += m.speed * gap;
+                    if (m.age >= m.life || m.along < 0 || m.along > 1) { motes[k] = spark(grid); continue; }
+                }
+                var x = m.vertical ? m.at : grid.span.x + grid.span.w * m.along;
+                var y = m.vertical ? grid.span.y + grid.span.h * m.along : m.at;
+                var t = m.age / m.life;
+                ctx.globalAlpha = 0.9 * Math.sin(Math.min(1, Math.max(0, t)) * Math.PI);
+                ctx.fillStyle = k % 3 ? "#4bbc6b" : "#7ea875";
+                ctx.fillRect(x - m.size / 2, y - m.size / 2, m.size, m.size);
+            }
+            ctx.globalAlpha = 1;
+        });
+        sparks.canvas = canvas;
+    }
+
+    function stopSparks() {
+        if (!sparks) return;
+        Game.Pulse.drop(sparks);
+        if (sparks.canvas.parentNode) sparks.canvas.parentNode.removeChild(sparks.canvas);
+        sparks = null;
     }
 
     function unglow(tile) {
@@ -129,14 +189,8 @@ window.Game = window.Game || {};
             delete tile.dataset.fuse;
         }
 
-        // what the board is waiting for: with the bomb in hand, the square it
-        // would land on in each column; with a sweep owed, every piece
-        if (aiming) {
-            var spot = Game.Board.landing(cell.x);
-            if (spot && spot.id === id) classes.push("is-aim");
-        } else if (choosing && shown[id]) {
-            classes.push("is-pickable");
-        }
+        // with a sweep owed, every piece is there to be named
+        if (choosing && !aiming && shown[id]) classes.push("is-pickable");
 
         var next = classes.join(" ");
         if (tile.className !== next) tile.className = next;
@@ -154,6 +208,7 @@ window.Game = window.Game || {};
     function paintHover() {
         host.classList.toggle("is-aiming", aiming);
         host.classList.toggle("is-choosing", choosing && !aiming);
+        if (aiming || choosing) startSparks(); else stopSparks();
         shown.forEach(function (piece, id) {
             paintState(id);
         });

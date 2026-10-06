@@ -16,10 +16,11 @@
    palette): the hues, the lightness and the steps are set there, in OKLCH,
    and come out here as hex. Change them there, not here.
 
-   The bomb and infinity are not on the ladder, and not squares: the black
-   diamond with the 0 on it, and the white one with the sign — the bomb turned
-   inside out. Both are drawn in js/ui/icons.js; --num here is only the colour
-   of the dust they throw when they break. */
+   The bomb and infinity are not on the ladder: the bomb is the black square
+   with the 0 on it, with rainbow dust over it on the board (js/ui/pulse.js),
+   and infinity the white diamond with the sign, standing on its point, drawn
+   in js/ui/icons.js — for it, --num is only the colour of the dust it throws
+   when it breaks. */
 
 :root {
     --bomb: #2d2a2e;
@@ -112,29 +113,10 @@
     box-shadow: inset 0 0 0 2px var(--accent);
 }
 
-/* Rings round a piece are drawn in white and ink rather than the accent
-   green: the first rungs are green themselves, and a green ring round a
-   green tile is gone. The one that matters most is naming a number for
-   infinity — every piece on the board rings, and that ring is the only thing
-   asking for a tap, so it is bold, and it breathes. */
-.tile.num.is-pickable {
-    box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--ink);
-    animation: pick-breathe 1s ease-in-out infinite;
-}
-
+/* a piece that can be named for infinity wears nothing of its own: the
+   board says it is waiting, with green along its lines (css/game.css) */
 .tile.num.is-pickable:hover {
-    box-shadow: 0 0 0 3px #fff, 0 0 0 7px var(--ink);
-}
-
-/* the ring swells rather than the piece moving, so a tap always lands */
-@keyframes pick-breathe {
-    0%,
-    100% {
-        box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--ink);
-    }
-    50% {
-        box-shadow: 0 0 0 3px #fff, 0 0 0 8px var(--ink);
-    }
+    box-shadow: 0 0 0 2px var(--ink);
 }
 
 .slot.num.is-picked {
@@ -162,22 +144,20 @@
 
 /* ---- the bomb and infinity ------------------------------------------------
 
-   Neither is a number, and neither is a square: the two pieces that are set
-   off rather than built stand on a point, and nothing is painted under them
-   — the socket shows round the diamond, on the board and in how to play
-   alike. A lit column shows on the socket itself, so the diamond wears no
-   ring of its own. These come after the rules above because they undo them. */
-.tile.num-0 .tile__art,
+   Infinity stands on a point, and nothing is painted under it — the socket
+   shows round the diamond, on the board and in how to play alike. A lit
+   column shows on the socket itself, so the diamond wears no ring of its
+   own. These come after the rules above because they undo them. The bomb is
+   a square like the numbers, black, with rainbow dust drifting over it on
+   the board (js/ui/boardview.js). */
 .tile.num-inf .tile__art {
     background: none;
 }
 
-.tile.num-0.is-column .tile__art,
 .tile.num-inf.is-column .tile__art {
     box-shadow: none;
 }
 
-.how__cell.num-0,
 .how__cell.num-inf {
     background: var(--cell);
 }

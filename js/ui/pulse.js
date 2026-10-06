@@ -3,14 +3,14 @@ window.Game = window.Game || {};
 /* =============================================================================
    PULSE — the bomb's light
    -----------------------------------------------------------------------------
-   What a live bomb looks like, wherever it is: the dial beside the hand once
-   it is worth pressing (js/ui/chargeview.js), and the bomb itself standing on
-   the board (js/ui/boardview.js). The edge wears the rainbow only 35 wears,
-   going round and pulsing — wider and brighter at the top of each beat; a
-   stroke the shape of the piece is born on the edge in a white flash and
-   goes out past it, fading as it goes, one after another without end; and
-   dust in every colour of the wheel rises inside. The dial is a square and
-   the bomb a diamond standing on its point, so the strokes follow the shape.
+   The dial beside the hand, once it is worth pressing (js/ui/chargeview.js):
+   its edge wears the rainbow only 35 wears, going round and pulsing — wider
+   and brighter at the top of each beat; a stroke is born on the edge in a
+   white flash and goes out past it, fading as it goes, one after another
+   without end; and dust in every colour of the wheel rises inside. The dust
+   alone drifts over a bomb standing on the board, and the board borrows the
+   loop for the green along its lines while it waits (js/ui/boardview.js).
+   The strokes can take a square or a diamond.
 
    One loop draws every light there is, and stops when there is none.
    ============================================================================= */

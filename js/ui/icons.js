@@ -217,14 +217,12 @@ window.Game = window.Game || {};
 
     /* ---- the bomb and infinity ---------------------------------------------
 
-       Neither is a number, and neither is a square: the two pieces that are
-       set off rather than built stand on a point. The bomb is a black diamond
-       with a white 0 on it, and infinity is the bomb turned inside out — a
-       white diamond with a black edge, and one unbroken figure of eight on it
-       in the same black. The edge, which no number has, is what shows the
-       white piece on the white grid. Both diamonds fill the tile's box from
-       corner to corner, so on the board they stand as tall as the numbers
-       beside them. */
+       Neither is a number. The bomb is the black square with the 0 on it in
+       white, and rainbow dust drifting over it on the board (js/ui/pulse.js).
+       Infinity stands on a point: a white diamond with a black edge, and one
+       unbroken figure of eight on it in the same black. The edge, which no
+       number has, is what shows the white piece on the white grid; the
+       diamond fills the tile's box from corner to corner. */
     var INK = "#2d2a2e";
     var EDGE = 1.5;                     // infinity's frame, measured across it
     var LOOP_WIDTH = 1.9;
@@ -265,9 +263,9 @@ window.Game = window.Game || {};
     }
 
     var art = {
-        bomb:
-            '<path d="' + DIAMOND + '" fill="' + INK + '"/>' +
-            '<path class="mark" fill="#fff" d="' + outline(bars(0)) + '"/>',
+        // the 0 alone: the tile is black (css/numbers.css), as a number's is
+        // its colour, and the mark winks (the class)
+        bomb: '<path class="mark" fill="#fff" d="' + outline(bars(0)) + '"/>',
 
         infinity:
             '<path d="' + DIAMOND + '" fill="' + INK + '"/>' +
@@ -330,16 +328,13 @@ window.Game = window.Game || {};
         },
 
         /* The same drawing on a canvas, in the 24-unit box the art is made in,
-           for js/ui/shatter.js to cut into pieces. A number is painted on
-           whatever ground the canvas already has; the bomb and infinity bring
-           their own. */
+           for js/ui/shatter.js to cut into pieces. A number, and the bomb, are
+           painted on whatever ground the canvas already has; infinity brings
+           its own. */
         paint: function (ctx, name) {
-            if (Game.Icons.ownGround(name)) {
+            if (name === "infinity") {
                 ctx.fillStyle = INK;
                 ctx.fill(new Path2D(DIAMOND));
-            }
-
-            if (name === "infinity") {
                 ctx.fillStyle = "#fff";
                 ctx.fill(new Path2D(INNER));
                 ctx.lineWidth = LOOP_WIDTH;
@@ -358,10 +353,10 @@ window.Game = window.Game || {};
             });
         },
 
-        /* the pieces whose art is its own shape and ground — a number is
-           white on whatever colour its tile wears (css/numbers.css) */
+        /* the piece whose art is its own shape and ground — a number, and
+           the bomb, are white on whatever colour the tile wears */
         ownGround: function (name) {
-            return name === "bomb" || name === "infinity";
+            return name === "infinity";
         },
 
         // the black of the bomb, and of infinity's edge and sign

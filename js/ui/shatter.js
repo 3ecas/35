@@ -15,8 +15,8 @@ window.Game = window.Game || {};
    air and stops the moment the last piece is gone, so a still board costs
    nothing. The pieces are cut from a picture of the tile as it stood, painted
    by the same code that draws the art (Game.Icons.paint), so they are always
-   the tile's own colour and the number's own strokes — or, for the bomb and
-   infinity, the diamond's.
+   the tile's own colour and the number's own strokes — or, for infinity,
+   the diamond's.
 
    The air has a limit, and the limit follows the phone. Every square in the
    air is drawn, turned, every frame, and past a few hundred a phone starts

@@ -32,7 +32,7 @@ often, the higher you climb: one every five drops from 10, one every three from
 15, two every five from 20, two every three from 25, three every two from 30.
 The run ends when the board is full.
 
-**The bomb — the black diamond with a 0 on it.** The dial beside the hand
+**The bomb — the black 0.** The dial beside the hand
 fills with the merges your moves make — twenty fill it — and keeps its charge
 if you leave mid-run. When it is full, tap it and pick a column to drop a bomb.
 It joins nothing; a merge beside it, or its own five-turn fuse, sets it off,
@@ -82,10 +82,13 @@ for 33 and 34 — and the start of a run looks as easy as it plays while the top
 looks as hard as it is. 35 wears every colour, round the clock. The shades are
 made by `tools/palette.js`: the hues and the steps are set there, and
 `npm run palette` writes them into `css/numbers.css`. The bomb and infinity
-are the two pieces that are not numbers, and they do not look like numbers:
-each stands on its point — the bomb a black diamond with a white 0 on it,
-infinity a white diamond with a black edge and the sign on it, the bomb turned
-inside out. Whatever leaves the board — merged, blown up, swept by infinity —
+are the two pieces that are not numbers, and neither looks like one: the bomb
+is black, with its 0 in white and rainbow dust drifting over it, shaking
+harder through its last three turns; infinity stands on its point, a white
+diamond with a black edge and the sign on it. While the board waits for a
+tap — a column for the bomb in hand, a number for infinity — green runs
+along the grid's lines, and a line under the score says what is wanted.
+Whatever leaves the board — merged, blown up, swept by infinity —
 breaks into squares of itself that fly to the edges of the screen: a few
 large squares for a lone merge, more and smaller the longer the chain, up to
 the third link, and the most for a blast.
@@ -106,7 +109,7 @@ css/
   game.css         the board, the hand, the buttons, how-to, about, end card
   charges.css      the bomb dial
   backdrop.css     the board's colours drifting behind everything
-  numbers.css      the palette, the flat square pieces, and the two diamonds
+  numbers.css      the palette, the flat square pieces, and infinity's diamond
 js/
   core/            config (every tunable number), events, storage
   data/pieces.js   the ladder 1–35, the bomb, infinity
