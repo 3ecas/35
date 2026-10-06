@@ -67,6 +67,14 @@ const SETTINGS = {
     "seam22+deal34": {
         note: "both: 2 every 2 at the top, and 34 is dealt",
         apply: function (Game) { SETTINGS.seam22.apply(Game); SETTINGS.deal34.apply(Game); }
+    },
+    "deal34+help": {
+        note: "34 is dealt, and more bombs and infinity",
+        apply: function (Game) { SETTINGS.deal34.apply(Game); SETTINGS.help.apply(Game); }
+    },
+    "seam23+deal34+help": {
+        note: "all three: the seam stops at 25, 34 is dealt, more bombs and infinity",
+        apply: function (Game) { SETTINGS.seam23.apply(Game); SETTINGS.deal34.apply(Game); SETTINGS.help.apply(Game); }
     }
 };
 
