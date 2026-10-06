@@ -33,24 +33,19 @@ const CROWDED = 14;              // free squares at or under this: spend the bom
 /* ---- the settings to try ----------------------------------------------- */
 const SETTINGS = {
     base: {
-        note: "as the game is",
+        note: "as the game is: the seam holds at 25, and 34 is dealt once made",
         apply: function () {}
     },
-    seam22: {
-        note: "the top seam tier 2 every 2, not 3 every 2",
-        apply: function (Game) { Game.Config.game.falls[4] = { from: 30, count: 2, every: 2 }; }
+    before: {
+        note: "as it was: the seam stepped up to 3 every 2 at 30, and 34 was never dealt",
+        apply: function (Game) {
+            Game.Config.game.falls.push({ from: 30, count: 3, every: 2 });
+            dealTo(Game, PEAK - 2);
+        }
     },
-    seam23: {
-        note: "the top seam tier 2 every 3: the seam stops escalating at 25",
-        apply: function (Game) { Game.Config.game.falls[4] = { from: 30, count: 2, every: 3 }; }
-    },
-    seam33: {
-        note: "3 every 2 only from 33",
-        apply: function (Game) { Game.Config.game.falls[4] = { from: 33, count: 3, every: 2 }; }
-    },
-    deal34: {
-        note: "34 is dealt once a 34 has been made",
-        apply: function (Game) { dealTo(Game, PEAK - 1); }
+    seam30: {
+        note: "a last seam step at 30 again, but 2 every 2",
+        apply: function (Game) { Game.Config.game.falls.push({ from: 30, count: 2, every: 2 }); }
     },
     room16: {
         note: "a fall takes at most a sixth of the free squares, not a quarter",
@@ -59,27 +54,10 @@ const SETTINGS = {
     help: {
         note: "the bomb fills in 15 merges and infinity comes every 50 drops",
         apply: function (Game) { Game.Config.game.bombPace = 15; Game.Config.game.infinityEvery = 50; }
-    },
-    "seam23+deal34": {
-        note: "both: the seam stops escalating at 25, and 34 is dealt",
-        apply: function (Game) { SETTINGS.seam23.apply(Game); SETTINGS.deal34.apply(Game); }
-    },
-    "seam22+deal34": {
-        note: "both: 2 every 2 at the top, and 34 is dealt",
-        apply: function (Game) { SETTINGS.seam22.apply(Game); SETTINGS.deal34.apply(Game); }
-    },
-    "deal34+help": {
-        note: "34 is dealt, and more bombs and infinity",
-        apply: function (Game) { SETTINGS.deal34.apply(Game); SETTINGS.help.apply(Game); }
-    },
-    "seam23+deal34+help": {
-        note: "all three: the seam stops at 25, 34 is dealt, more bombs and infinity",
-        apply: function (Game) { SETTINGS.seam23.apply(Game); SETTINGS.deal34.apply(Game); SETTINGS.help.apply(Game); }
     }
 };
 
-/* the deal's window reaches up to `below` the peak until the peak is made,
-   instead of the two below it */
+/* the deal's window reaches up to `upTo` until the peak is made */
 function dealTo(Game, upTo) {
     var ladder = Game.Pieces.list;
     var WINDOW = 3;

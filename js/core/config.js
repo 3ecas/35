@@ -28,14 +28,15 @@ Game.Config = {
         // The seam, paced by how far the run has climbed rather than by how
         // long it has lasted: once the best number made reaches `from`,
         // `count` pieces fall in every `every` drops. Nothing falls in below
-        // the first row; the last holds from 30 to the end of the run, 35
-        // and past it.
+        // the first row; the last holds from 25 to the end of the run, 35
+        // and past it. (It used to step up once more at 30, to three every
+        // two drops — more than a merge a drop just to stand still — and no
+        // one reached 35; tools/sim.js measured it.)
         falls: [
             { from: 10, count: 1, every: 5 },
             { from: 15, count: 1, every: 3 },
             { from: 20, count: 2, every: 5 },
-            { from: 25, count: 2, every: 3 },
-            { from: 30, count: 3, every: 2 }
+            { from: 25, count: 2, every: 3 }
         ],
 
         // a fall never takes more than this share of the free squares, and
