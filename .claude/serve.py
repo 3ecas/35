@@ -1,5 +1,9 @@
 """A static server for the game, with caching switched off.
 
+Serves the checkout — the game at / — or, given a folder as a second
+argument, that folder: python3 .claude/serve.py 4173 site shows the built
+website, with the game at /play/.
+
 Safari on a phone will hold onto a cached config.js across a reload, which
 during testing looks exactly like a change that did not work. no-store is
 what makes a reload on the phone mean what it says.
@@ -11,6 +15,8 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 4173
+if len(sys.argv) > 2:
+    ROOT = os.path.join(ROOT, sys.argv[2])
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):

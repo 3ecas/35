@@ -7,5 +7,8 @@
     "contentInset": "never",
     "backgroundColor": "#eef0f3",
     "scrollEnabled": false
+  },
+  "android": {
+    "adjustMarginsForEdgeToEdge": "auto"
   }
 }

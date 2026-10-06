@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- --bg in css/theme.css: what the page is before the board draws over it -->
+    <color name="launch">#eef0f3</color>
+</resources>

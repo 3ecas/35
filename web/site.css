@@ -1,0 +1,310 @@
+/* The game's home on the web: the page the game itself sits on — its grey
+   bands, its white squares, its block digits and square capitals — with the
+   game one tap away. The colours and the digits come from the game's own
+   files (play/css/numbers.css, play/js/ui/icons.js), so this page cannot
+   drift away from it. */
+
+:root {
+    --bg: #eef0f3;
+    --ink: #3d444e;
+    --ink-soft: #69727e;
+    --cell: rgba(255, 255, 255, 0.9);
+    --bomb: #2d2a2e;
+    --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--ink);
+    background: var(--bg);
+    background-image:
+        radial-gradient(120% 44% at 50% -8%, rgba(255, 255, 255, 0.9), transparent 72%),
+        linear-gradient(180deg, #ffffff 0%, #f0f3f7 42%, #e1e6ed 76%, #d4dae3 100%);
+    background-attachment: fixed;
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    color: inherit;
+}
+
+.page {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 48px 20px 40px;
+}
+
+/* ---- the top: the 35 itself, and the ways to get it ------------------------ */
+.hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+/* the top of the ladder, as a tile you can tap */
+.hero__tile {
+    display: grid;
+    place-items: center;
+    width: 148px;
+    height: 148px;
+    background: var(--num);
+    color: #fff;
+    text-decoration: none;
+    box-shadow: 0 2px 4px rgba(58, 66, 78, 0.07), 0 12px 28px rgba(58, 66, 78, 0.1);
+    transition: transform 0.14s ease;
+}
+
+.hero__tile:hover {
+    transform: translateY(-2px);
+}
+
+.hero__title {
+    display: flex;
+    font-size: 60px;
+}
+
+.hero__line {
+    margin: 26px 0 0;
+    font-size: 15px;
+    color: var(--ink);
+}
+
+.hero__sub {
+    max-width: 480px;
+    margin: 14px 0 0;
+    color: var(--ink-soft);
+}
+
+.get {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 28px;
+}
+
+.get__play,
+.get__store {
+    display: flex;
+    padding: 14px 26px;
+    border: 2px solid var(--ink);
+    font-size: 13px;
+    text-decoration: none;
+    transition: background 0.16s ease, color 0.16s ease, opacity 0.16s ease;
+}
+
+.get__play {
+    background: var(--ink);
+    color: #fff;
+}
+
+.get__play:hover {
+    background: var(--bomb);
+    border-color: var(--bomb);
+}
+
+.get__store {
+    background: var(--cell);
+    color: var(--ink);
+}
+
+.get__store:hover {
+    background: #fff;
+}
+
+/* until the apps are out, the store buttons are there but not live */
+.get__store[aria-disabled="true"] {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+.get__note {
+    margin: 14px 0 0;
+    font-size: 13px;
+    color: var(--ink-soft);
+}
+
+/* ---- how it plays, in the game's own pieces --------------------------------- */
+.how {
+    margin-top: 64px;
+}
+
+.how__title {
+    margin: 0 0 22px;
+    font-size: 14px;
+    text-align: center;
+    color: var(--ink);
+}
+
+.how__steps {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.how__step {
+    display: grid;
+    grid-template-columns: 136px 1fr;
+    gap: 18px;
+    align-items: center;
+    padding: 16px;
+    background: var(--cell);
+}
+
+.how__pieces {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 136px;
+}
+
+.piece {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    background: var(--num);
+    color: #fff;
+    font-style: normal;
+}
+
+.piece[data-number] {
+    font-size: 15px;
+}
+
+/* the bomb and infinity paint their own shape: nothing under them */
+.piece.num-0,
+.piece.num-inf {
+    background: none;
+}
+
+.piece svg.icon {
+    width: 100%;
+    height: 100%;
+}
+
+/* the climb: one square a set, 1 to 35 */
+.how__pieces--ladder {
+    gap: 4px;
+}
+
+.how__pieces--ladder .piece {
+    width: 24px;
+    height: 24px;
+}
+
+.how__text {
+    margin: 0;
+    font-size: 15px;
+    color: var(--ink);
+}
+
+.foot {
+    margin-top: 56px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--ink-soft);
+}
+
+/* ---- a page of words: the privacy page -------------------------------------- */
+.page--text {
+    max-width: 560px;
+}
+
+.page--text .back {
+    justify-content: flex-start;
+    font-size: 18px;
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.page--text h1 {
+    justify-content: flex-start;
+    margin: 28px 0 0;
+    font-size: 22px;
+}
+
+.page--text .when {
+    margin: 10px 0 26px;
+    font-size: 13px;
+    color: var(--ink-soft);
+}
+
+.page--text h2 {
+    margin: 30px 0 8px;
+    font-size: 17px;
+}
+
+.page--text p,
+.page--text li {
+    margin: 0 0 10px;
+    color: var(--ink);
+}
+
+.page--text ul {
+    padding-left: 22px;
+}
+
+.foot p {
+    margin: 6px 0;
+}
+
+/* the words and digits are the game's: in the colour of the text around them */
+.words {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.6em 0.45em;
+}
+
+svg.blocks,
+svg.glyphs {
+    display: block;
+    flex: none;
+}
+
+svg.icon {
+    display: block;
+    fill: none;
+    stroke: none;
+}
+
+.unseen {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+    .page {
+        padding-top: 36px;
+    }
+
+    .how__step {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .how__pieces {
+        width: auto;
+    }
+}

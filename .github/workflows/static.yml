@@ -33,15 +33,15 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
-      # The same build as the app: www/ with a stamp on every css/js URL, so a
-      # browser that still holds one script from the last deploy cannot pair
-      # it with a fresh copy of another (tools/stamp.js).
+      # The website: the landing page at /, the game at /play/, every css/js
+      # URL stamped so a browser that still holds one script from the last
+      # deploy cannot pair it with a fresh copy of another (tools/stamp.js).
       - name: Build
-        run: npm run build
+        run: npm run site
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'www'
+          path: 'site'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5

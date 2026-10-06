@@ -1,7 +1,9 @@
 # 35
 
-A drop-and-merge number puzzle for iPhone and iPad. Plain HTML, CSS and
-JavaScript — no framework, no bundler — wrapped for iOS with Capacitor.
+A drop-and-merge number puzzle for iPhone, iPad and Android, and for the
+browser. Plain HTML, CSS and JavaScript — no framework, no bundler — wrapped
+for iOS and Android with Capacitor, with a small website that carries the
+game.
 
 ## The game
 
@@ -95,7 +97,7 @@ indicator.
 ## Layout
 
 ```
-index.html
+index.html         the game
 css/
   theme.css        page tokens, reset, base type
   components.css   the points that fly to the score
@@ -109,12 +111,25 @@ js/
   systems/         state and rules — board, round, charges; never touch the DOM
   ui/              listen and draw — never edit state directly
   pages/game.js    boot
+web/
+  index.html       the game's home on the web: what it is, play, the stores
+  site.css, site.js
 tools/
   palette.js       the colours of the numbers, written into css/numbers.css
-  stamp.js         cache-busting for the iOS build and the web deploy
-  icon.swift       draws the app icon and the launch screen
-ios/               the Xcode project (Capacitor)
+  stamp.js         cache-busting for the app builds and the website
+  icon.swift       draws the iOS app icon and launch screen (needs a Mac)
+  icon-android.js  draws the Android launcher icons and the Play listing art
+store/
+  play/            the Google Play listing icon and feature graphic
+ios/               the Xcode project (Capacitor) — the iPhone and iPad build
+android/           the Android Studio project (Capacitor) — the Google Play build
 ```
+
+The two app builds live in their own folders, `ios/` and `android/`, and
+share everything above them: both take the game from `www/`, which
+`npm run build` makes from `index.html`, `css/` and `js/`. The website is
+built into `site/` by `npm run site`. Both build folders are generated and
+not kept in git.
 
 All tuning lives in `js/core/config.js`.
 
@@ -127,6 +142,31 @@ npm run serve
 Then open http://localhost:4173. Best score and the run in progress are kept
 in `localStorage` under `thirtyfive.save`; the sound setting under
 `thirtyfive.sound`.
+
+## The website
+
+`web/` is the game's home on the web: a page that says what the game is,
+shows how it plays in the game's own pieces, and offers it — play in the
+browser, and the App Store and Google Play once the apps are out. It is cut
+from the game's own files (the palette, the block digits), so it cannot
+drift away from it.
+
+```bash
+npm run serve:site
+```
+
+builds the site into `site/` — the page at `/`, the game at `/play/`, every
+stylesheet and script URL stamped — and serves it at http://localhost:4173.
+Pushing to `main` builds the same and publishes it to GitHub Pages
+(`.github/workflows/static.yml`), so the online game is always the last
+thing merged.
+
+When the apps are published, put their store links into `STORES` at the
+foot of `web/site.js` and the two store buttons come alive.
+
+The site also carries the privacy policy (`web/privacy.html`), which both
+stores ask for a link to even though the game collects nothing. Once the
+site is live the link is `https://<your pages domain>/privacy.html`.
 
 ## Build for the App Store
 
@@ -153,3 +193,119 @@ You need a Mac with **Xcode** (from the Mac App Store), **CocoaPods**
 The app is set up for that already: portrait on iPhone, every orientation on
 iPad (iPad multitasking requires it), no export-compliance question
 (`ITSAppUsesNonExemptEncryption` is off), and an icon with no transparency.
+
+## Build for Google Play
+
+This one builds on Windows, Mac or Linux. You need **Android Studio** (which
+brings the Android SDK and a JDK), Node, and a Google Play developer account
+(a one-time fee).
+
+1. `npm install` — once.
+2. `npm run icons:android` — only if you change the icon; it redraws the
+   launcher icons under `android/app/src/main/res/mipmap-*` and the listing
+   art under `store/play/`. Plain Node, nothing to install.
+3. `npm run android` — builds `www/`, syncs it into the Android project and
+   opens Android Studio. Let it finish its first Gradle sync (it downloads
+   what it needs; a few minutes the first time).
+4. To try it: plug in a phone with USB debugging on, or start an emulator,
+   and press *Run*.
+5. To publish: *Build → Generate Signed App Bundle / APK → Android App
+   Bundle*. The first time, *Create new…* a keystore: pick a strong password
+   and keep the file and the password somewhere safe and backed up — every
+   future update must be signed with the same key, and there is no way to
+   recover it. Choose the *release* build. The bundle lands in
+   `android/app/release/app-release.aab`.
+6. In the Play Console, create the app for the package
+   `com.bernardogramaxo.thirtyfive`, upload the bundle to a testing track
+   first (Internal testing lets you install it from the store in minutes),
+   then promote it to Production.
+7. The store listing needs: the icon (`store/play/icon-512.png`), the feature
+   graphic (`store/play/feature-1024x500.png`), at least two phone
+   screenshots (and tablet screenshots if you want it listed for tablets), a
+   short and a full description, a content rating questionnaire (a puzzle
+   with no user content rates for everyone), the *Data safety* form (no data
+   collected, no data shared — the game stores nothing off the device; ads
+   change that), and a privacy policy URL, which Play asks for even so: a
+   page saying the game collects nothing is enough, and the website's footer
+   says as much.
+
+Every upload needs a higher `versionCode` in `android/app/build.gradle`
+(1, 2, 3, …); `versionName` is what people see (1.0, 1.1, …). The project
+targets Android 15 (API 35), as Play requires, and runs on Android 6 and up.
+The launch is the page's own grey, as on iOS, and the launcher icon is the
+same 35 on the rainbow, drawn by `tools/icon-android.js` from the same
+digits and colours as everything else.
+
+## The stores' rules, and how the app meets them
+
+Both stores review what they publish. This is a small offline puzzle with
+no account, no ads, no purchases and no data collection, which keeps it
+clear of most of the rulebook; what remains, and where it stands:
+
+**Apple (App Store Review Guidelines)**
+
+- *Completeness and minimum functionality* (2.1, 4.2): a full game, not a
+  wrapped website — it works offline, every file is inside the app, and
+  nothing is a placeholder. Test the store build on a device before each
+  upload.
+- *Design* (4.0): it behaves like an iOS app — safe areas respected, a plain
+  launch screen, portrait on iPhone and every orientation on iPad, which
+  iPad multitasking requires.
+- *Privacy* (5.1.1): a privacy policy link is required for every app; the
+  website's privacy page is it. The App Privacy answers are *Data Not
+  Collected*. There is no account, so the account-deletion rule does not
+  apply.
+- *Accurate metadata* (2.3): screenshots show the game as it is, and the
+  description says what it does. Age rating 4+.
+- *Export compliance*: `ITSAppUsesNonExemptEncryption` is off, so there is
+  no encryption question at upload.
+- If ads ever go in: an ad SDK collects identifiers, so the privacy answers
+  change, and personalised ads need the App Tracking Transparency prompt.
+
+**Google (Play policies)**
+
+- *Target API level*: Play requires new apps and updates to target Android
+  15 (API 35); the project does. Android 15 draws apps edge to edge under
+  the system bars, and `capacitor.config.json` tells Capacitor to keep the
+  game below the status bar and above the navigation bar.
+- *Privacy policy*: required for every app in the Play Console; same page
+  as above. *Data safety* form: no data collected, no data shared.
+- *Content rating*: the IARC questionnaire; a puzzle with no violence, no
+  user content and no purchases rates for everyone.
+- *Target audience*: say the app is not designed for children (13+). It is
+  fine for children to play, but choosing children as a target audience
+  brings the Families policy, which asks for more than this app needs.
+- *Permissions*: only `INTERNET`, which Capacitor's shell needs; nothing
+  sensitive, so no permission declarations.
+- *App bundle and signing*: Play takes an `.aab` and signs it with Play App
+  Signing; you keep an upload key (the keystore).
+- *New developer accounts*: a personal account made after November 2023
+  must run a closed test with at least twelve testers opted in for fourteen
+  days before it can publish to production. Plan for that; internal
+  testing is open to you at once.
+- *Large screens*: the game is not locked to portrait on Android, so it
+  rotates on tablets and Chromebooks, as Play's large-screen guidance
+  prefers; the layout fits any shape.
+
+**Both**
+
+- The name, the art and the code are original; nothing is borrowed.
+- The listing must match the app: no features promised that are not there.
+- Say the same thing in both stores and on the privacy page, and keep all
+  three in step when anything changes.
+
+## Before you publish, on either store
+
+- Bump the version: `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in
+  Xcode for iOS, `versionName` and `versionCode` in
+  `android/app/build.gradle` for Android.
+- Play a run on a real device from the store build, not the browser: a merge,
+  a chain, the bomb, infinity, the tutorial from `?`, start over, and a
+  reload mid-run to see the run come back.
+- Screenshots come from a device or simulator running the store build; the
+  stores want them at the device's own size.
+- Both stores ask what the app collects: nothing, today. The moment an ad
+  SDK or analytics goes in, both answers change, and Apple's tracking prompt
+  comes into play.
+- Keep the Android keystore and its password, and your Apple signing
+  certificates, backed up off the machine.
