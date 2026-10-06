@@ -99,6 +99,13 @@ window.Game = window.Game || {};
         return piece;
     }
 
+    /* whether `id` is in the deal of a run whose best number is `highest` */
+    function dealt(id, highest) {
+        return Game.Pieces.dealing(highest || 1).some(function (piece) {
+            return piece.id === id;
+        });
+    }
+
     function fillHand() {
         while (state.hand.length < settings().handSize) {
             state.hand.push(nextDeal());
@@ -442,13 +449,14 @@ window.Game = window.Game || {};
                 tally: game.tally || 0,
                 highest: game.highest || 1,
                 sinceFall: game.sinceFall || 0,
+                // the hand and the bag come back only as far as they are still
+                // in the deal: a run saved under an older deal (one that held
+                // 35, say) is dealt afresh from the current one
                 hand: (game.hand || [])
                     .map(function (id) { return Game.Pieces.byId(id); })
-                    .filter(Boolean),
+                    .filter(function (piece) { return piece && dealt(piece.id, game.highest); }),
                 bag: (game.bag || []).filter(function (id) {
-                    return Game.Pieces.dealing(game.highest || 1).some(function (piece) {
-                        return piece.id === id;
-                    });
+                    return dealt(id, game.highest);
                 }),
                 runId: game.runId || null,
                 runLen: game.runLen || 0,
