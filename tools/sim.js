@@ -33,27 +33,28 @@ const CROWDED = 14;              // free squares at or under this: spend the bom
 /* ---- the settings to try ----------------------------------------------- */
 const SETTINGS = {
     base: {
-        note: "as the game is: the seam holds at 25, and 34 is dealt once made",
+        note: "as the game is: the seam holds at 25, 34 is dealt once made, and from 25 the bomb fills in 15 and infinity comes every 50",
         apply: function () {}
     },
+    nolate: {
+        note: "the same, but no late-game help: the bomb at 20 and infinity every 80 throughout",
+        apply: function (Game) { Game.Config.game.late = null; }
+    },
     before: {
-        note: "as it was: the seam stepped up to 3 every 2 at 30, and 34 was never dealt",
+        note: "as it first was: the seam stepped up to 3 every 2 at 30, 34 was never dealt, no late-game help",
         apply: function (Game) {
             Game.Config.game.falls.push({ from: 30, count: 3, every: 2 });
+            Game.Config.game.late = null;
             dealTo(Game, PEAK - 2);
         }
     },
-    seam30: {
-        note: "a last seam step at 30 again, but 2 every 2",
-        apply: function (Game) { Game.Config.game.falls.push({ from: 30, count: 2, every: 2 }); }
+    helpall: {
+        note: "the late-game help from the first rung instead of from 25",
+        apply: function (Game) { Game.Config.game.late.from = 1; }
     },
     room16: {
         note: "a fall takes at most a sixth of the free squares, not a quarter",
         apply: function (Game) { Game.Config.game.fallRoom = 1 / 6; }
-    },
-    help: {
-        note: "the bomb fills in 15 merges and infinity comes every 50 drops",
-        apply: function (Game) { Game.Config.game.bombPace = 15; Game.Config.game.infinityEvery = 50; }
     }
 };
 

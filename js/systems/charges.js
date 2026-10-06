@@ -82,8 +82,10 @@ window.Game = window.Game || {};
     }
 
     /* ---- what it asks for, and what it does to the square you pick --------- */
+    // merges to fill the dial: fewer in the late game (js/systems/round.js)
     function bombCost() {
-        return Math.max(1, settings().bombPace || 10);
+        var lateGame = Game.Round.late && Game.Round.late();
+        return Math.max(1, (lateGame && lateGame.bombPace) || settings().bombPace || 10);
     }
 
     function drop(cell) {

@@ -105,14 +105,23 @@ window.Game = window.Game || {};
         }
     }
 
+    /* the late game (config: late): from that rung on, room is made oftener;
+       null before it */
+    function late() {
+        var s = settings();
+        return s.late && state && state.highest >= s.late.from ? s.late : null;
+    }
+
     /* infinity's turn: past infinityFrom points, none on the board, and
-       none yet this run or infinityEvery drops since the last one fell */
+       none yet this run or infinityEvery drops since the last one fell —
+       fewer in the late game */
     function infinityDue() {
         var s = settings();
+        var every = (late() && late().infinityEvery) || s.infinityEvery;
         if (state.score < s.infinityFrom) return false;
         if (Game.Board.snapshot().indexOf(Game.Pieces.infinity.id) !== -1) return false;
         return state.lastInfinity === null ||
-            state.placed - state.lastInfinity >= s.infinityEvery;
+            state.placed - state.lastInfinity >= every;
     }
 
     function seam() {
@@ -368,6 +377,11 @@ window.Game = window.Game || {};
     Game.Round = {
         get: function () {
             return state;
+        },
+
+        // the late game's settings once the run is in it, else null
+        late: function () {
+            return late();
         },
 
         found: function (pieceId) {

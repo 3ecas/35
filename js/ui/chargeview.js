@@ -9,8 +9,9 @@ window.Game = window.Game || {};
    stops — a square stroke born on the dial's edge in a flash, going out past
    it and fading as it goes. White, faint and slow while the dial is filling,
    and the fuller the clearer. Once it is worth pressing it wears the bomb's
-   own light (js/ui/pulse.js): the rainbow edge, turning and pulsing, and
-   strokes going out in it — the same light the bomb has on the board. It is
+   own light (js/ui/pulse.js): the rainbow edge, turning and pulsing, strokes
+   going out in it, and the dust blowing out from the centre — the same the
+   bomb has on the board. It is
    meant to be read out of the corner of the eye — the piece sitting on top is
    what you are actually looking at.
 
@@ -69,7 +70,10 @@ window.Game = window.Game || {};
         ctx.fillRect(cx - r, level, span, cy + r - level);
         ctx.globalAlpha = 1;
 
-        Game.Pulse.dust(light, gap, cx - r, top, span, span, level, one.ready);
+        // the dust rises through what is filled; once ready it blows out from
+        // the centre instead
+        if (one.ready) Game.Pulse.blow(light, gap, cx, cy, r);
+        else Game.Pulse.dust(light, gap, cx - r, top, span, span, level, false);
         ctx.restore();
 
         // white strokes while filling, the fuller the clearer; the bomb's own

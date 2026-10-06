@@ -7,10 +7,12 @@ window.Game = window.Game || {};
    its edge wears the rainbow only 35 wears, going round and pulsing — wider
    and brighter at the top of each beat; a stroke is born on the edge in a
    white flash and goes out past it, fading as it goes, one after another
-   without end; and dust in every colour of the wheel rises inside. The dust
-   alone drifts over a bomb standing on the board, and the board borrows the
-   loop for the green along its lines while it waits (js/ui/boardview.js).
-   The strokes can take a square or a diamond.
+   without end; and inside, dust in every colour of the wheel blows out from
+   the centre to the sides, a colour explosion held in. While the dial is
+   still filling, the dust only rises through what is filled. The blow alone
+   plays over a bomb standing on the board, and the board's edge wears the
+   whole light while the board waits for a tap (js/ui/boardview.js). The
+   strokes can take a square or a diamond.
 
    One loop draws every light there is, and stops when there is none.
    ============================================================================= */
@@ -25,6 +27,9 @@ window.Game = window.Game || {};
     // the live edge: turns of the rainbow a second, and beats a second
     var SPIN = 0.22;
     var BEAT = 0.9;
+
+    // the blow: this many motes over a live bomb
+    var FLECKS = 48;
 
     var lights = [];
     var still = null;
@@ -79,6 +84,20 @@ window.Game = window.Game || {};
             size: 1.3 + Math.random() * 1.3,
             rise: 0.06 + Math.random() * 0.14,
             glow: 0.4 + Math.random() * 0.6,
+            colour: wheel[Math.floor(Math.random() * (wheel.length - 1))].hex
+        };
+    }
+
+    /* one mote of the blow, going out from the centre along `angle`: a
+       `fresh` one is born at the centre, the first batch anywhere on the way */
+    function fleck(fresh) {
+        var wheel = Game.Icons.wheel();
+        return {
+            angle: Math.random() * Math.PI * 2,
+            out: fresh ? Math.random() * 0.06 : Math.random(),  // share of the way to the edge
+            speed: 0.7 + Math.random() * 0.8,                     // of the way, a second, off the centre
+            size: 1.5 + Math.random() * 1.7,
+            glow: 0.55 + Math.random() * 0.45,
             colour: wheel[Math.floor(Math.random() * (wheel.length - 1))].hex
         };
     }
@@ -219,9 +238,42 @@ window.Game = window.Game || {};
             ctx.globalAlpha = 1;
         },
 
+        /* The blow: dust in every colour of the wheel born at the centre of
+           the square (cx, cy), `half` to its edge, flying out to the sides —
+           white and quick off the centre, taking its colour, slowing and
+           fading as it nears the edge, and born again at the centre. A
+           colour explosion held in. */
+        blow: function (light, gap, cx, cy, half) {
+            var ctx = light.ctx;
+            if (!light.flecks) {
+                light.flecks = [];
+                for (var n = 0; n < FLECKS; n++) light.flecks.push(fleck(false));
+            }
+            for (var i = 0; i < light.flecks.length; i++) {
+                var f = light.flecks[i];
+                if (!quiet()) {
+                    f.out += f.speed * (1.3 - 0.9 * f.out) * gap;
+                    if (f.out >= 1) { light.flecks[i] = fleck(true); continue; }
+                }
+                // the way to the square's edge along this angle
+                var way = half / Math.max(Math.abs(Math.cos(f.angle)), Math.abs(Math.sin(f.angle)));
+                var far = f.out * way;
+                var left = 1 - f.out;
+                var dot = f.size * (0.7 + 0.3 * left);
+                var fresh = f.out < 0.1;
+
+                ctx.globalAlpha = fresh ? 0.9 : f.glow * Math.min(1, left * 1.6);
+                ctx.fillStyle = fresh ? "#ffffff" : f.colour;
+                ctx.fillRect(cx + Math.cos(f.angle) * far - dot / 2,
+                             cy + Math.sin(f.angle) * far - dot / 2, dot, dot);
+            }
+            ctx.globalAlpha = 1;
+        },
+
         /* The dust: dots in every colour of the wheel rising through the box
            (x, y, w, h), shown only below `floor` — the level a dial has
-           filled to — and only inside whatever the caller has clipped to. */
+           filled to — and only inside whatever the caller has clipped to.
+           The dial's, while it is still filling. */
         dust: function (light, gap, x, y, w, h, floor, live) {
             var ctx = light.ctx;
             for (var i = 0; i < light.motes.length; i++) {

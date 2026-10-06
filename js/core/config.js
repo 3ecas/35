@@ -69,15 +69,26 @@ Game.Config = {
 
         // merges that fill the bomb dial: each merge your own moves make
         // counts one, chains link by link; merges set off by pieces falling
-        // in, or by a blast, do not count
+        // in, or by a blast, do not count. Fewer in the late game (`late`).
         bombPace: 20,
 
         // Infinity falls in with the seam, in place of a piece: the first with
         // the first fall once a run passes infinityFrom points, then one every
-        // infinityEvery drops — never while one is still on the board. It
-        // joins nothing; a merge beside it or a blast over it sets it off,
-        // and then you name a number and every one of them goes.
+        // infinityEvery drops (fewer in the late game, `late`) — never while
+        // one is still on the board. It joins nothing; a merge beside it or a
+        // blast over it sets it off, and then you name a number and every
+        // one of them goes.
         infinityFrom: 6250,
-        infinityEvery: 80
+        infinityEvery: 80,
+
+        // The late game: from the rung the seam reaches its full strength
+        // at, the two ways of making room come oftener — the dial fills in
+        // fewer merges, and infinity falls in every fewer drops. Below it
+        // the game is as it was.
+        late: {
+            from: 25,
+            bombPace: 15,
+            infinityEvery: 50
+        }
     }
 };

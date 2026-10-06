@@ -21,9 +21,9 @@ make one: four or five of a kind still make one of the next number, six make
 two.
 
 The hand deals three numbers — the best you have made and the two under it —
-so the deal climbs with you; 35 itself is only built, never dealt, until the
-first 35 is made. From then on the deal is the last three, 33 to 35, for the
-rest of the run. The three come round in turn rather than by the roll of a
+so the deal climbs with you, as far as 34: 35 itself is only ever built, never
+dealt, or a run would have no end. From the first 34 the deal is 32, 33 and 34
+for the rest of the run. The three come round in turn rather than by the roll of a
 die: they go into a bag — the lowest four times, the middle three, and the
 top once — and the hand is dealt from it until it is empty, so none of them
 stays away for long, and the same number never comes three times running. Once you make a 10 the seam starts to give way and pieces
@@ -33,15 +33,16 @@ often, the higher you climb: one every five drops from 10, one every three from
 when the board is full.
 
 **The bomb — the black 0.** The dial beside the hand
-fills with the merges your moves make — twenty fill it — and keeps its charge
-if you leave mid-run. When it is full, tap it and pick a column to drop a bomb.
+fills with the merges your moves make — twenty fill it, fifteen once you have
+made a 25 — and keeps its charge if you leave mid-run. When it is full, tap it
+and pick a column to drop a bomb.
 It joins nothing; a merge beside it, or its own five-turn fuse, sets it off,
 and the eight squares around it go with it.
 
 **Infinity — the white diamond with the ∞ on it.** It falls in now and then
-once a run passes 6,250 points. A merge beside it, or a blast over it, sets it
-off: every piece on the board rings, you tap a number, and every one of that
-number goes.
+once a run passes 6,250 points — every eighty drops, every fifty once you have
+made a 25. A merge beside it, or a blast over it, sets it off: every piece on
+the board rings, you tap a number, and every one of that number goes.
 
 Three 35s have nowhere to go: they cash in for double and leave the board.
 Getting to 35 is hard; past it there is no ceiling on the score.
@@ -71,23 +72,26 @@ first time it opens only from the ? button.
 Every piece is a flat square with its number in white, in block digits built
 from straight bars — no curves, no outline. The grid is white; the score, the
 best and the buttons are white and drawn the same way, and the few words
-the game says are square capitals on a 5 × 7 grid. Behind it all,
-the colours of the numbers on the board — muted, so the tiles stand out —
-blend and drift slowly across the screen. The colours go up the ladder in
+the game says are square capitals on a 5 × 7 grid. Behind it all, every
+hue of the wheel — muted, so the tiles stand out — blends into a soft rainbow
+that turns slowly round the screen. The colours go up the ladder in
 sets of four — 1 to 4, 5 to 8, and so on — and each set wears one colour, the
 lowest of the four in a light shade of it and the highest in a deep one. Every
 set starts a little darker than the one before, so the run walks the whole
 wheel — green, yellow, orange, red, pink, purple, violet, blue, and a deep teal
 for 33 and 34 — and the start of a run looks as easy as it plays while the top
-looks as hard as it is. 35 wears every colour, round the clock. The shades are
+looks as hard as it is. 35 wears every colour, round the clock, and turns slowly through them. The
+shades are
 made by `tools/palette.js`: the hues and the steps are set there, and
 `npm run palette` writes them into `css/numbers.css`. The bomb and infinity
 are the two pieces that are not numbers, and neither looks like one: the bomb
-is black, with its 0 in white and rainbow dust drifting over it, shaking
-harder through its last three turns; infinity stands on its point, a white
-diamond with a black edge and the sign on it. While the board waits for a
-tap — a column for the bomb in hand, a number for infinity — green runs
-along the grid's lines, and a line under the score says what is wanted.
+is black, with its 0 in white and rainbow dust blowing out from its centre
+to its sides, a colour explosion held in, and it shakes harder through its
+last three turns; infinity stands on its point, a white diamond with a black
+edge and the sign on it. While the board waits for a tap — a column for the
+bomb in hand, a number for infinity — the edge of the grid wears the bomb
+dial's light, the rainbow going round it and strokes going out past it, and
+a line under the score says what is wanted.
 Whatever leaves the board — merged, blown up, swept by infinity —
 breaks into squares of itself that fly to the edges of the screen: a few
 large squares for a lone merge, more and smaller the longer the chain, up to
@@ -108,7 +112,7 @@ css/
   components.css   the points that fly to the score
   game.css         the board, the hand, the buttons, how-to, about, end card
   charges.css      the bomb dial
-  backdrop.css     the board's colours drifting behind everything
+  backdrop.css     a soft rainbow turning behind everything
   numbers.css      the palette, the flat square pieces, and infinity's diamond
 js/
   core/            config (every tunable number), events, storage
@@ -142,7 +146,7 @@ All tuning lives in `js/core/config.js`. To see what a change does before
 making it, `npm run sim` plays the game a few hundred runs over with a
 steady, middling strategy, under the settings listed at the top of
 `tools/sim.js`, and reports how many runs reach 35 and where the rest die
-(`npm run sim -- 500 base,seam23` for more runs of fewer settings).
+(`npm run sim -- 500 base,nolate` for more runs of fewer settings).
 
 ## Run it in a browser
 

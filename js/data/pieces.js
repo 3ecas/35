@@ -90,11 +90,12 @@ window.Game = window.Game || {};
 
         // No floor of a full window: a run starts on 1 alone and every rung
         // it makes joins the deal, until there are three and the bottom one
-        // drops off — making a 4 is what takes the 1 out of the hand. 35 is
-        // never dealt, only built, until 35 itself is made; 34 joins the deal
-        // as soon as one is made, like every rung before it, so the last step
-        // of the climb costs what the others do.
-        return made >= peak ? peak : Math.max(1, Math.min(made, peak - 1));
+        // drops off — making a 4 is what takes the 1 out of the hand. The
+        // deal climbs as far as 34 and no further: 35 is only ever built,
+        // never dealt, or a run would have no end — three 35s cash in and
+        // leave, and with 35 in hand the board could never fill. From the
+        // first 34 the deal is 32, 33 and 34 for the rest of the run.
+        return Math.max(1, Math.min(made, peak - 1));
     }
 
     Game.Pieces = {
