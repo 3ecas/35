@@ -122,6 +122,7 @@ tools/
   stamp.js         cache-busting for the app builds and the website
   icon.swift       draws the iOS app icon and launch screen (needs a Mac)
   icon-android.js  draws the Android launcher icons and the Play listing art
+  sim.js           a bot that plays the game by its own rules, to measure the climb
 store/
   play/            the Google Play listing icon and feature graphic
 ios/               the Xcode project (Capacitor) — the iPhone and iPad build
@@ -134,7 +135,11 @@ share everything above them: both take the game from `www/`, which
 website is built into `site/` by `npm run site`. Both build folders are
 generated and not kept in git.
 
-All tuning lives in `js/core/config.js`.
+All tuning lives in `js/core/config.js`. To see what a change does before
+making it, `npm run sim` plays the game a few hundred runs over with a
+steady, middling strategy, under the settings listed at the top of
+`tools/sim.js`, and reports how many runs reach 35 and where the rest die
+(`npm run sim -- 500 base,seam23` for more runs of fewer settings).
 
 ## Run it in a browser
 
