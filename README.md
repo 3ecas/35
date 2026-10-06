@@ -113,7 +113,9 @@ js/
   pages/game.js    boot
 web/
   index.html       the game's home on the web: what it is, play, the stores
+  privacy.html     the privacy policy both stores link to
   site.css, site.js
+  badges/          the stores' own badges, as they supply them
 tools/
   palette.js       the colours of the numbers, written into css/numbers.css
   stamp.js         cache-busting for the app builds and the website
@@ -162,7 +164,17 @@ Pushing to `main` builds the same and publishes it to GitHub Pages
 thing merged.
 
 When the apps are published, put their store links into `STORES` at the
-foot of `web/site.js` and the two store buttons come alive.
+foot of `web/site.js` and the two store badges come alive. The badges are
+the stores' own artwork, used as they supply it and never redrawn:
+`badges/app-store.svg` is Apple's "Download on the App Store" from
+developer.apple.com, and `badges/google-play.png` is Google's "Get it on
+Google Play" from developer.android.com. Both companies ask that a badge
+be shown no smaller than 40 pixels tall, with clear space round it, and
+only as a link to the app's own store page — which is why the two are dim
+until the links are set — and that the trademark lines in the page's
+footer go with them. For a sharper Google badge on high-density screens,
+the badge generator at play.google.com/badges makes a larger PNG; drop it
+in over the same file name.
 
 The site also carries the privacy policy (`web/privacy.html`), which both
 stores ask for a link to even though the game collects nothing. Once the

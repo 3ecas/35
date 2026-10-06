@@ -94,19 +94,17 @@ a {
     margin-top: 28px;
 }
 
-.get__play,
-.get__store {
-    display: flex;
-    padding: 14px 26px;
-    border: 2px solid var(--ink);
-    font-size: 13px;
-    text-decoration: none;
-    transition: background 0.16s ease, color 0.16s ease, opacity 0.16s ease;
-}
-
 .get__play {
+    display: flex;
+    align-items: center;
+    height: 44px;
+    padding: 0 26px;
+    border: 2px solid var(--ink);
     background: var(--ink);
     color: #fff;
+    font-size: 13px;
+    text-decoration: none;
+    transition: background 0.16s ease, border-color 0.16s ease;
 }
 
 .get__play:hover {
@@ -114,18 +112,28 @@ a {
     border-color: var(--bomb);
 }
 
+/* The stores' badges, at the one size both allow and no smaller — 40 tall —
+   on their own, with air round them, and never redrawn or recoloured. */
 .get__store {
-    background: var(--cell);
-    color: var(--ink);
+    display: flex;
+    align-items: center;
+    height: 44px;
+    transition: opacity 0.16s ease, transform 0.14s ease;
 }
 
 .get__store:hover {
-    background: #fff;
+    transform: translateY(-1px);
 }
 
-/* until the apps are out, the store buttons are there but not live */
+.get__badge {
+    display: block;
+    height: 40px;
+    width: auto;
+}
+
+/* until the apps are out, the badges are there but not live */
 .get__store[aria-disabled="true"] {
-    opacity: 0.45;
+    opacity: 0.4;
     pointer-events: none;
 }
 
@@ -261,6 +269,12 @@ a {
 
 .foot p {
     margin: 6px 0;
+}
+
+.foot__marks {
+    margin-top: 14px;
+    font-size: 11px;
+    color: var(--ink-faint, #a2aab6);
 }
 
 /* the words and digits are the game's: in the colour of the text around them */

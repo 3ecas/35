@@ -30,10 +30,18 @@
 
                 <nav class="get" aria-label="Get the game">
                     <a class="get__play words" href="play/" data-words="Play now"></a>
-                    <a class="get__store words" href="#" data-store="ios" data-words="App Store"
-                       aria-disabled="true"></a>
-                    <a class="get__store words" href="#" data-store="android" data-words="Google Play"
-                       aria-disabled="true"></a>
+                    <!-- The stores' own badges, as they supply them, unaltered: Apple's
+                         from developer.apple.com, Google's from developer.android.com.
+                         Both ask that a badge lead to the app's own store page, so the
+                         two stay dim until the links are set (web/site.js). -->
+                    <a class="get__store" href="#" data-store="ios" aria-disabled="true">
+                        <img class="get__badge" src="badges/app-store.svg"
+                             alt="Download on the App Store" width="120" height="40" />
+                    </a>
+                    <a class="get__store" href="#" data-store="android" aria-disabled="true">
+                        <img class="get__badge" src="badges/google-play.png"
+                             alt="Get it on Google Play" width="115" height="40" />
+                    </a>
                 </nav>
                 <p class="get__note">Free, in your browser — no account, nothing to install.
                    The iPhone and Android apps are on their way.</p>
@@ -82,6 +90,9 @@
                 <p>Nothing leaves your device: the game keeps your run and your best score in
                    your own browser, and nowhere else.</p>
                 <p><a href="privacy.html">Privacy</a> · <a href="https://github.com/3ecas/35">Source on GitHub</a></p>
+                <p class="foot__marks">Apple, the Apple logo and App Store are trademarks of
+                   Apple Inc. Google Play and the Google Play logo are trademarks of Google
+                   LLC.</p>
             </footer>
         </main>
 
