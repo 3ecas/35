@@ -99,6 +99,29 @@ window.Game = window.Game || {};
         return piece;
     }
 
+    /* With infinity out of the game (config: infinityFrom is Infinity), a
+       board saved while it was still in loses its infinities, and what stood
+       on them settles down the column. Any other board comes back as it was. */
+    function withoutInfinity(board) {
+        var s = settings();
+        var id = Game.Pieces.infinity.id;
+        if (s.infinityFrom < Infinity || board.indexOf(id) === -1) return board;
+
+        var out = board.slice();
+        for (var x = 0; x < s.cols; x++) {
+            var kept = [];
+            for (var y = 0; y < s.rows; y++) {
+                var piece = board[y * s.cols + x];
+                if (piece && piece !== id) kept.push(piece);
+            }
+            var shift = s.rows - kept.length;
+            for (var row = 0; row < s.rows; row++) {
+                out[row * s.cols + x] = row >= shift ? kept[row - shift] : null;
+            }
+        }
+        return out;
+    }
+
     /* whether `id` is in the deal of a run whose best number is `highest` */
     function dealt(id, highest) {
         return Game.Pieces.dealing(highest || 1).some(function (piece) {
@@ -439,7 +462,7 @@ window.Game = window.Game || {};
             if (!game || !Array.isArray(game.board)) return false;
 
             Game.Board.build(settings().cols, settings().rows);
-            if (!Game.Board.load(game.board)) return false;
+            if (!Game.Board.load(withoutInfinity(game.board))) return false;
 
             state = {
                 running: true,
