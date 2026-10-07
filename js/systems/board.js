@@ -122,7 +122,12 @@ window.Game = window.Game || {};
                 var piece = Game.Pieces.byId(cell.piece);
                 if (!piece || !piece.tier) continue;
 
-                var taking = reach(cell, need);
+                // the top of the ladder has nothing to become: cashAt of it
+                // together cash in and leave (never, if that is Infinity)
+                var want = piece.next ? need : (Game.Config.game.cashAt || need);
+                if (want === Infinity) continue;
+
+                var taking = reach(cell, want);
                 if (!taking) continue;
 
                 var lead = taking[0];
@@ -132,14 +137,14 @@ window.Game = window.Game || {};
                 });
 
                 if (!best || (lead.fresh || 0) > (best.keep.fresh || 0)) {
-                    best = { keep: lead, piece: piece };
+                    best = { keep: lead, piece: piece, need: want };
                 }
             }
         }
 
         if (!best) return null;
 
-        var eat = reach(best.keep, need);
+        var eat = reach(best.keep, best.need);
         eat.sort(function (a, b) {
             return (eat.steps[b.id] - eat.steps[a.id]) || (b.y - a.y) || (a.x - b.x);
         });

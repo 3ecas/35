@@ -117,6 +117,50 @@ const SETTINGS = {
             Game.Config.game.fallRoom = Math.min(1, 0.25 + 0.75 * after / 200);
         }
     },
+    stay35: {
+        note: "35s never cash out: they stay, and the board shrinks by a square for every 35 made",
+        apply: function (Game) { Game.Config.game.cashAt = Infinity; }
+    },
+    "stay35+tighten": {
+        note: "35s stay, and the seam tightens every 40 drops after a 35",
+        apply: function (Game) { Game.Config.game.cashAt = Infinity; },
+        tick: function (Game, after) { SETTINGS.tighten.tick(Game, after); }
+    },
+    cash4: {
+        note: "four 35s together cash out, not three",
+        apply: function (Game) { Game.Config.game.cashAt = 4; }
+    },
+    cash5: {
+        note: "five 35s together cash out, not three",
+        apply: function (Game) { Game.Config.game.cashAt = 5; }
+    },
+    cash6: {
+        note: "six 35s together cash out, not three",
+        apply: function (Game) { Game.Config.game.cashAt = 6; }
+    },
+    "cash5+tighten": {
+        note: "five 35s to cash out, and the seam tightening every 40 drops after a 35",
+        apply: function (Game) { Game.Config.game.cashAt = 5; },
+        tick: function (Game, after) { SETTINGS.tighten.tick(Game, after); }
+    },
+    room1: {
+        note: "after a 35 a fall may take every free square, not a quarter",
+        apply: function (Game) { Game.Config.game.fallRoom = 1; }
+    },
+    "tighten+room1": {
+        note: "the seam tightening every 40 drops after a 35, and falls taking every free square",
+        apply: function (Game) { Game.Config.game.fallRoom = 1; },
+        tick: function (Game, after) { SETTINGS.tighten.tick(Game, after); }
+    },
+    "tightenfast+room1": {
+        note: "the seam tightening every 20 drops after a 35, and falls taking every free square",
+        apply: function (Game) { Game.Config.game.fallRoom = 1; },
+        tick: function (Game, after) { SETTINGS.tighten.tick(Game, after * 2); }
+    },
+    nobomb: {
+        note: "after a 35 the dial never fills again",
+        apply: function (Game) { Game.Config.game.bombPace = 1e9; Game.Config.game.late.bombPace = 1e9; }
+    },
     widen: {
         note: "once a 35 is made the deal widens downward, one more number every 60 drops: 32-34, then 31-34, 30-34...",
         apply: function (Game) { dealWindow(Game, () => 3 + Math.floor(after / 60), PEAK); },
@@ -301,7 +345,17 @@ function playRun(Game, setting) {
 
     let drops = 0;
     let stuck = 0;
+    let made35 = 0;
+    let third35 = null;
     after = 0;
+    const count = e => e.steps.forEach(st => {
+        if ((st.type === "merge" || st.type === "cash") && st.piece === "n35") {
+            made35++;
+            if (made35 === 3 && third35 === null) third35 = drops;
+        }
+    });
+    Game.Events.on("board:steps", count);
+    Game.Events.on("game:rain", count);
     const most = AFTER ? AFTER_CAP : MOST_DROPS;
     while (!over && drops < most) {
         const state = Game.Round.get();
@@ -333,7 +387,7 @@ function playRun(Game, setting) {
 
     const state = Game.Round.get();
     if (off && typeof off === "function") off();
-    return { highest: state.highest, drops: drops, score: state.score,
+    return { highest: state.highest, drops: drops, score: state.score, made35: made35, third35: third35,
              reached: AFTER ? drops >= AFTER_CAP : state.highest >= PEAK };
 }
 
@@ -350,7 +404,7 @@ function pad(s, n, left) {
 const names = Object.keys(SETTINGS).filter(n => !ONLY || ONLY.indexOf(n) !== -1);
 console.log(RUNS + " runs a setting" + (AFTER ? ", each starting with a 35 made; endless is " + AFTER_CAP + " more drops" : "") + "\n");
 if (AFTER) {
-    console.log(pad("setting", 15) + pad("endless", 10, true) + pad("median drops", 14, true) + pad("p90 drops", 11, true) + pad("shortest", 10, true));
+    console.log(pad("setting", 18) + pad("endless", 10, true) + pad("median drops", 14, true) + pad("p90 drops", 11, true) + pad("shortest", 10, true) + pad("35s made", 10, true) + pad("to 3rd 35", 11, true));
 } else {
     console.log(pad("setting", 15) + pad("reach 35", 10, true) + pad("median top", 12, true) + pad("p90 top", 9, true) + pad("best", 6, true) + pad("median drops", 14, true) + "  died at (top rung: runs)");
 }
@@ -367,8 +421,12 @@ names.forEach(name => {
     const drops = results.map(r => r.drops).sort((a, b) => a - b);
     const reached = results.filter(r => r.reached).length;
     if (AFTER) {
-        console.log(pad(name, 15) + pad((100 * reached / RUNS).toFixed(0) + "%", 10, true) + pad(quantile(drops, 0.5), 14, true) +
-            pad(quantile(drops, 0.9), 11, true) + pad(drops[0], 10, true) + "   (" + ((Date.now() - t0) / 1000).toFixed(0) + "s)");
+        const made = results.map(r => r.made35).sort((a, b) => a - b);
+        const thirds = results.map(r => r.third35).filter(v => v !== null).sort((a, b) => a - b);
+        console.log(pad(name, 18) + pad((100 * reached / RUNS).toFixed(0) + "%", 10, true) + pad(quantile(drops, 0.5), 14, true) +
+            pad(quantile(drops, 0.9), 11, true) + pad(drops[0], 10, true) + pad(quantile(made, 0.5), 10, true) +
+            pad(thirds.length ? quantile(thirds, 0.5) + " (" + (100 * thirds.length / RUNS).toFixed(0) + "%)" : "never", 11, true) +
+            "   (" + ((Date.now() - t0) / 1000).toFixed(0) + "s)");
         return;
     }
     const died = {};

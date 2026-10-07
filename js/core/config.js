@@ -47,8 +47,10 @@ Game.Config = {
         // falling pieces go to the columns with the most room
         fallEven: true,
 
-        // three 35s have nowhere to go: they cash in for cashBonus times
-        // their worth and leave the board
+        // 35s have nowhere to go: cashAt of them together cash in for
+        // cashBonus times their worth and leave the board. At Infinity they
+        // never leave, and the board is a square smaller for each one made.
+        cashAt: 3,
         cashBonus: 2,
 
         // each link of a chain pays chainStep more, up to chainMost times
