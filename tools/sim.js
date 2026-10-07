@@ -90,6 +90,18 @@ const SETTINGS = {
         note: "no infinity at all",
         apply: function (Game) { Game.Config.game.infinityFrom = Infinity; }
     },
+    "noinf+bomb15": {
+        note: "no infinity, and the bomb dial fills in 15 merges",
+        apply: function (Game) { Game.Config.game.infinityFrom = Infinity; Game.Config.game.bombPace = 15; Game.Config.game.late.bombPace = 15; }
+    },
+    "noinf+bomb12": {
+        note: "no infinity, and the bomb dial fills in 12 merges",
+        apply: function (Game) { Game.Config.game.infinityFrom = Infinity; Game.Config.game.bombPace = 12; Game.Config.game.late.bombPace = 12; }
+    },
+    "noinf+bomb10": {
+        note: "no infinity, and the bomb dial fills in 10 merges",
+        apply: function (Game) { Game.Config.game.infinityFrom = Infinity; Game.Config.game.bombPace = 10; Game.Config.game.late.bombPace = 10; }
+    },
     room50: {
         note: "a fall may take up to half the free squares, not a quarter",
         apply: function (Game) { Game.Config.game.fallRoom = 0.5; }
