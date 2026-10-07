@@ -15,7 +15,14 @@
 
      node tools/sim.js                 200 runs of every setting
      node tools/sim.js 500             500 runs of every setting
-     node tools/sim.js 300 base,seam23 only those settings
+     node tools/sim.js 300 base,nolate only those settings
+
+   The end game is measured apart: `after` starts every run with a 35
+   already made — the deal at its top, the seam at full strength, the score
+   past infinity's threshold — and plays on until the board fills, or until
+   AFTER_CAP more drops, which is called endless.
+
+     node tools/sim.js after 300 base,win4
    ============================================================================= */
 
 const fs = require("fs");
@@ -23,11 +30,13 @@ const path = require("path");
 const vm = require("vm");
 
 const root = path.join(__dirname, "..");
-const RUNS = Number(process.argv[2]) || 200;
-const ONLY = process.argv[3] ? process.argv[3].split(",") : null;
+const AFTER = process.argv[2] === "after";
+const RUNS = Number(process.argv[AFTER ? 3 : 2]) || 200;
+const ONLY = process.argv[AFTER ? 4 : 3] ? process.argv[AFTER ? 4 : 3].split(",") : null;
 
 const PEAK = 35;
 const MOST_DROPS = 6000;         // a run that long is called a reach
+const AFTER_CAP = 800;           // drops after a 35 that are called endless
 const CROWDED = 14;              // free squares at or under this: spend the bomb
 
 /* ---- the settings to try ----------------------------------------------- */
@@ -55,8 +64,98 @@ const SETTINGS = {
     room16: {
         note: "a fall takes at most a sixth of the free squares, not a quarter",
         apply: function (Game) { Game.Config.game.fallRoom = 1 / 6; }
+    },
+
+    // ---- the end game: what could close a run that has made its 35 ----------
+    win4: {
+        note: "four numbers in the deal instead of three, the whole run through",
+        apply: function (Game) { dealWindow(Game, 4, 0); }
+    },
+    win4late: {
+        note: "four numbers in the deal from 25 on",
+        apply: function (Game) { dealWindow(Game, 4, 25); }
+    },
+    tighten: {
+        note: "after a 35 the seam tightens every 40 drops: 2 every 3, 2 every 2, 3 every 2, 3 every 1, 4 every 1",
+        apply: function () {},
+        tick: function (Game, after) {
+            const steps = [[2, 3], [2, 2], [3, 2], [3, 1], [4, 1]];
+            const k = Math.min(steps.length - 1, Math.floor(after / 40));
+            const table = Game.Config.game.falls;
+            table[table.length - 1].count = steps[k][0];
+            table[table.length - 1].every = steps[k][1];
+        }
+    },
+    noinf: {
+        note: "no infinity at all",
+        apply: function (Game) { Game.Config.game.infinityFrom = Infinity; }
+    },
+    room50: {
+        note: "a fall may take up to half the free squares, not a quarter",
+        apply: function (Game) { Game.Config.game.fallRoom = 0.5; }
+    },
+    "win4+tighten": {
+        note: "four in the deal from 25, and the seam tightening after a 35",
+        apply: function (Game) { dealWindow(Game, 4, 25); },
+        tick: function (Game, after) { SETTINGS.tighten.tick(Game, after); }
+    },
+    win4after: {
+        note: "four numbers in the deal only once a 35 is made",
+        apply: function (Game) { dealWindow(Game, 4, PEAK); }
+    },
+    "win4after+tighten": {
+        note: "four in the deal once a 35 is made, and the seam tightening after it",
+        apply: function (Game) { dealWindow(Game, 4, PEAK); },
+        tick: function (Game, after) { SETTINGS.tighten.tick(Game, after); }
+    },
+    "tighten+room": {
+        note: "the seam tightening after a 35, and a fall allowed more of the free squares as it goes: half after 100 drops, all after 200",
+        apply: function () {},
+        tick: function (Game, after) {
+            SETTINGS.tighten.tick(Game, after);
+            Game.Config.game.fallRoom = Math.min(1, 0.25 + 0.75 * after / 200);
+        }
+    },
+    widen: {
+        note: "once a 35 is made the deal widens downward, one more number every 60 drops: 32-34, then 31-34, 30-34...",
+        apply: function (Game) { dealWindow(Game, () => 3 + Math.floor(after / 60), PEAK); },
+        tick: function (Game, drops) { after = drops; }
+    },
+    "widen+tighten": {
+        note: "the deal widening and the seam tightening after a 35",
+        apply: function (Game) { dealWindow(Game, () => 3 + Math.floor(after / 60), PEAK); },
+        tick: function (Game, drops) { after = drops; SETTINGS.tighten.tick(Game, drops); }
     }
 };
+
+/* `width` numbers in the deal instead of three (a number, or a function
+   giving one) — from `fromTier` on, or the whole run through when that is
+   0. The bag keeps the game's shares for the top three, 1, 3 and 4 from the
+   top down, and every number below them goes in twice. */
+function dealWindow(Game, width, fromTier) {
+    const ladder = Game.Pieces.list;
+    const was = Game.Pieces.dealing;
+    Game.Pieces.dealing = function (highestTier) {
+        const made = highestTier || 1;
+        if (fromTier && made < fromTier) return was.call(Game.Pieces, highestTier);
+        const top = Math.max(1, Math.min(made, PEAK - 1));
+        const w = typeof width === "function" ? width() : width;
+        return ladder.slice(Math.max(0, top - w), top);
+    };
+    Game.Pieces.bagFor = function (highestTier) {
+        const deal = this.dealing(highestTier);
+        const out = [];
+        deal.forEach((piece, i) => {
+            const fromTop = deal.length - 1 - i;
+            const share = fromTop === 0 ? 1 : fromTop === 1 ? 3 : fromTop === 2 ? 4 : 2;
+            for (let n = 0; n < share; n++) out.push(piece.id);
+        });
+        return out;
+    };
+}
+
+// how far a run is past its 35, for the settings that change with it
+let after = 0;
 
 /* the deal's window reaches up to `upTo` until the peak is made */
 function dealTo(Game, upTo) {
@@ -182,18 +281,32 @@ function bombSpot(Game) {
     return best;
 }
 
-function playRun(Game) {
+function playRun(Game, setting) {
     let over = false;
     const off = Game.Events.on("game:over", () => { over = true; });
-    Game.Round.start();
+    if (AFTER) {
+        // a run with its 35 made: an empty board, the deal at its top, the
+        // score past infinity's threshold, infinity not due at once
+        Game.Storage.write(Game.Config.game.saveKey, { best: 0, found: [], game: {
+            score: 150000, bomb: 0, placed: 400, tally: 0, highest: PEAK, sinceFall: 0,
+            runId: null, runLen: 0, lastInfinity: 380, hand: [], bag: [],
+            board: new Array(Game.Config.game.cols * Game.Config.game.rows).fill(null)
+        } });
+        if (!Game.Round.resume()) throw new Error("the end game would not resume");
+    } else {
+        Game.Round.start();
+    }
     index(Game);
 
     let drops = 0;
     let stuck = 0;
-    while (!over && drops < MOST_DROPS) {
+    after = 0;
+    const most = AFTER ? AFTER_CAP : MOST_DROPS;
+    while (!over && drops < most) {
         const state = Game.Round.get();
         if (!state || !state.running) break;
-        if (state.highest >= PEAK) break;
+        if (!AFTER && state.highest >= PEAK) break;
+        if (setting.tick) setting.tick(Game, drops);
 
         if (Game.Board.owes() > 0) {
             const name = nameToSweep(Game);
@@ -219,7 +332,8 @@ function playRun(Game) {
 
     const state = Game.Round.get();
     if (off && typeof off === "function") off();
-    return { highest: state.highest, drops: drops, score: state.score, reached: state.highest >= PEAK };
+    return { highest: state.highest, drops: drops, score: state.score,
+             reached: AFTER ? drops >= AFTER_CAP : state.highest >= PEAK };
 }
 
 /* ---- the report ------------------------------------------------------------- */
@@ -233,8 +347,12 @@ function pad(s, n, left) {
 }
 
 const names = Object.keys(SETTINGS).filter(n => !ONLY || ONLY.indexOf(n) !== -1);
-console.log(RUNS + " runs a setting\n");
-console.log(pad("setting", 15) + pad("reach 35", 10, true) + pad("median top", 12, true) + pad("p90 top", 9, true) + pad("best", 6, true) + pad("median drops", 14, true) + "  died at (top rung: runs)");
+console.log(RUNS + " runs a setting" + (AFTER ? ", each starting with a 35 made; endless is " + AFTER_CAP + " more drops" : "") + "\n");
+if (AFTER) {
+    console.log(pad("setting", 15) + pad("endless", 10, true) + pad("median drops", 14, true) + pad("p90 drops", 11, true) + pad("shortest", 10, true));
+} else {
+    console.log(pad("setting", 15) + pad("reach 35", 10, true) + pad("median top", 12, true) + pad("p90 top", 9, true) + pad("best", 6, true) + pad("median drops", 14, true) + "  died at (top rung: runs)");
+}
 
 names.forEach(name => {
     const setting = SETTINGS[name];
@@ -242,11 +360,16 @@ names.forEach(name => {
     const t0 = Date.now();
     for (let i = 0; i < RUNS; i++) {
         const Game = boot(setting.apply);
-        results.push(playRun(Game));
+        results.push(playRun(Game, setting));
     }
     const tops = results.map(r => r.highest).sort((a, b) => a - b);
     const drops = results.map(r => r.drops).sort((a, b) => a - b);
     const reached = results.filter(r => r.reached).length;
+    if (AFTER) {
+        console.log(pad(name, 15) + pad((100 * reached / RUNS).toFixed(0) + "%", 10, true) + pad(quantile(drops, 0.5), 14, true) +
+            pad(quantile(drops, 0.9), 11, true) + pad(drops[0], 10, true) + "   (" + ((Date.now() - t0) / 1000).toFixed(0) + "s)");
+        return;
+    }
     const died = {};
     results.forEach(r => { if (!r.reached) died[r.highest] = (died[r.highest] || 0) + 1; });
     const where = Object.keys(died).sort((a, b) => a - b).map(k => k + ":" + died[k]).join(" ");
