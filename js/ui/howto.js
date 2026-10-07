@@ -5,7 +5,7 @@ window.Game = window.Game || {};
    -----------------------------------------------------------------------------
    One idea a page, played out on a small grid of the game's own pieces over
    the game dimmed behind it: dropping, three making one, chains, numbers
-   falling in, the bomb, infinity, and the climb to 35. Whatever merges or
+   falling in, the bomb, and the climb to 35. Whatever merges or
    blows up breaks apart exactly as it does in the game (js/ui/shatter.js).
    A few words a page, in the game's square letters: the grid shows the rest.
 
@@ -68,7 +68,6 @@ window.Game = window.Game || {};
     var FLOOR_2 = { 16: "n1", 17: "n1" };
     var CHAIN = { 15: "n2", 16: "n2", 17: "n1", 18: "n1" };
     var BOMB = { 13: "n2", 14: "n2", 15: "n1", 16: "n1", 18: "bomb", 19: "n3" };
-    var INF = { 10: "n3", 13: "n3", 15: "n1", 16: "n1", 18: "infinity", 19: "n3" };
 
     var PAGES = [
         {
@@ -146,25 +145,6 @@ window.Game = window.Game || {};
                 board(plus(BOMB, { 17: "n1" }), [18], [15, 16, 17]),
                 board({ 13: "n2", 14: "n2", 15: "n2", 18: "bomb", 19: "n3" }, [18]),
                 board({ 13: "n2", 14: "n2", 15: "n2", 18: "bomb", 19: "n3" }, [], [13, 14, 18, 19]),
-                board({ 15: "n2" }),
-                board({ 15: "n2" })
-            ]
-        },
-        {
-            title: "Infinity",
-            line: "Merge next to it. Pick a number. All of them go.",
-            hold: 560,
-            frames: [
-                board(INF),
-                board(plus(INF, { 2: "n1" }), [2]),
-                board(plus(INF, { 7: "n1" }), [7]),
-                board(plus(INF, { 12: "n1" }), [12]),
-                board(plus(INF, { 17: "n1" })),
-                board(plus(INF, { 17: "n1" }), [18], [15, 16, 17]),
-                board({ 10: "n3", 13: "n3", 15: "n2", 18: "infinity", 19: "n3" }, [], [18]),
-                board({ 10: "n3", 15: "n2", 18: "n3", 19: "n3" }),
-                board({ 10: "n3", 15: "n2", 18: "n3", 19: "n3" }, [18]),
-                board({ 10: "n3", 15: "n2", 18: "n3", 19: "n3" }, [], [10, 18, 19]),
                 board({ 15: "n2" }),
                 board({ 15: "n2" })
             ]

@@ -69,27 +69,28 @@ Game.Config = {
 
         // merges that fill the bomb dial: each merge your own moves make
         // counts one, chains link by link; merges set off by pieces falling
-        // in, or by a blast, do not count. Fewer in the late game (`late`).
-        bombPace: 20,
+        // in, or by a blast, do not count. The bomb is the one way to make
+        // room, so the dial fills in fifteen: tools/sim.js has 4% of the
+        // bot's runs reach 35 at that, against 7% with infinity in the game
+        // and the dial at twenty, and 1% without infinity at twenty.
+        bombPace: 15,
 
-        // Infinity falls in with the seam, in place of a piece: the first with
-        // the first fall once a run passes infinityFrom points, then one every
-        // infinityEvery drops (fewer in the late game, `late`) — never while
-        // one is still on the board. It joins nothing; a merge beside it or a
+        // Infinity is out of the game. The piece and its sweep are still
+        // here — set infinityFrom to a score and it falls in again with the
+        // seam once a run passes it, then one every infinityEvery drops,
+        // never while one is still on the board; a merge beside it or a
         // blast over it sets it off, and then you name a number and every
         // one of them goes.
-        infinityFrom: 6250,
+        infinityFrom: Infinity,
         infinityEvery: 80,
 
         // The late game: from the rung the seam reaches its full strength
-        // at, infinity falls in every fewer drops. The dial is set here too,
-        // so it can be eased when the climb needs it; at 20 it is the same
-        // as below. (At 15 and 50, 13% of the bot's runs reached 35 — too
-        // easy; tools/sim.js.)
+        // at, the dial and infinity's cadence can be set apart from the
+        // rest of the run. Both the same as below for now.
         late: {
             from: 25,
-            bombPace: 20,
-            infinityEvery: 65
+            bombPace: 15,
+            infinityEvery: 80
         }
     }
 };

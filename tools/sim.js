@@ -15,7 +15,7 @@
 
      node tools/sim.js                 200 runs of every setting
      node tools/sim.js 500             500 runs of every setting
-     node tools/sim.js 300 base,nolate only those settings
+     node tools/sim.js 300 base,withinf only those settings
 
    The end game is measured apart: `after` starts every run with a 35
    already made — the deal at its top, the seam at full strength, the score
@@ -42,24 +42,33 @@ const CROWDED = 14;              // free squares at or under this: spend the bom
 /* ---- the settings to try ----------------------------------------------- */
 const SETTINGS = {
     base: {
-        note: "as the game is: the seam holds at 25, 34 is dealt once made, and from 25 infinity comes every 65",
+        note: "as the game is: no infinity, the dial at 15, the seam holding at 25, 34 dealt once made",
         apply: function () {}
     },
-    nolate: {
-        note: "the same, but no late-game help: infinity every 80 throughout",
-        apply: function (Game) { Game.Config.game.late = null; }
-    },
-    before: {
-        note: "as it first was: the seam stepped up to 3 every 2 at 30, 34 was never dealt, no late-game help",
+    withinf: {
+        note: "as it was before: infinity from 6,250 points every 80 drops (65 from 25), the dial at 20",
         apply: function (Game) {
-            Game.Config.game.falls.push({ from: 30, count: 3, every: 2 });
-            Game.Config.game.late = null;
-            dealTo(Game, PEAK - 2);
+            Game.Config.game.infinityFrom = 6250;
+            Game.Config.game.late.infinityEvery = 65;
+            Game.Config.game.bombPace = 20;
+            Game.Config.game.late.bombPace = 20;
         }
     },
-    helpall: {
-        note: "the late-game help from the first rung instead of from 25",
-        apply: function (Game) { Game.Config.game.late.from = 1; }
+    bomb20: {
+        note: "no infinity, the dial at 20",
+        apply: function (Game) { Game.Config.game.bombPace = 20; Game.Config.game.late.bombPace = 20; }
+    },
+    bomb12: {
+        note: "no infinity, the dial at 12",
+        apply: function (Game) { Game.Config.game.bombPace = 12; Game.Config.game.late.bombPace = 12; }
+    },
+    before: {
+        note: "as it first was: infinity, the dial at 20, the seam stepping up to 3 every 2 at 30, 34 never dealt",
+        apply: function (Game) {
+            SETTINGS.withinf.apply(Game);
+            Game.Config.game.falls.push({ from: 30, count: 3, every: 2 });
+            dealTo(Game, PEAK - 2);
+        }
     },
     room16: {
         note: "a fall takes at most a sixth of the free squares, not a quarter",
@@ -85,26 +94,6 @@ const SETTINGS = {
             table[table.length - 1].count = steps[k][0];
             table[table.length - 1].every = steps[k][1];
         }
-    },
-    noinf: {
-        note: "no infinity at all",
-        apply: function (Game) { Game.Config.game.infinityFrom = Infinity; }
-    },
-    "noinf+bomb15": {
-        note: "no infinity, and the bomb dial fills in 15 merges",
-        apply: function (Game) { Game.Config.game.infinityFrom = Infinity; Game.Config.game.bombPace = 15; Game.Config.game.late.bombPace = 15; }
-    },
-    "noinf+bomb12": {
-        note: "no infinity, and the bomb dial fills in 12 merges",
-        apply: function (Game) { Game.Config.game.infinityFrom = Infinity; Game.Config.game.bombPace = 12; Game.Config.game.late.bombPace = 12; }
-    },
-    "noinf+bomb10": {
-        note: "no infinity, and the bomb dial fills in 10 merges",
-        apply: function (Game) { Game.Config.game.infinityFrom = Infinity; Game.Config.game.bombPace = 10; Game.Config.game.late.bombPace = 10; }
-    },
-    room50: {
-        note: "a fall may take up to half the free squares, not a quarter",
-        apply: function (Game) { Game.Config.game.fallRoom = 0.5; }
     },
     "win4+tighten": {
         note: "four in the deal from 25, and the seam tightening after a 35",

@@ -33,15 +33,15 @@ often, the higher you climb: one every five drops from 10, one every three from
 when the board is full.
 
 **The bomb — the black 0.** The dial beside the hand
-fills with the merges your moves make — twenty fill it — and keeps its charge
+fills with the merges your moves make — fifteen fill it — and keeps its charge
 if you leave mid-run. When it is full, tap it and pick a column to drop a bomb.
 It joins nothing; a merge beside it, or its own five-turn fuse, sets it off,
 and the eight squares around it go with it.
 
-**Infinity — the white diamond with the ∞ on it.** It falls in now and then
-once a run passes 6,250 points — every eighty drops, every sixty-five once you
-have made a 25. A merge beside it, or a blast over it, sets it off: every piece
-on the board rings, you tap a number, and every one of that number goes.
+The bomb is the one way to make room. Infinity — a white diamond that fell
+in now and then and swept a whole number off the board when set off — is out
+of the game: with it, reaching 35 came too easily. Its piece and its sweep
+are still in the code, switched off in `js/core/config.js`.
 
 Three 35s have nowhere to go: they cash in for double and leave the board.
 Getting to 35 is hard; past it there is no ceiling on the score.
@@ -58,7 +58,7 @@ run.
 
 **How to play** is seven short pages, a line each, played out on a little grid
 of the game's own pieces — dropping, three making one, chains, numbers falling
-in, the bomb, infinity, and the climb to 35 — with the same shattering as the
+in, the bomb, and the climb to 35 — with the same shattering as the
 game.
 It opens by itself the first time the game is played (remembered under
 `thirtyfive.tutorial` in `localStorage`), before anything drops: the run
@@ -82,16 +82,14 @@ for 33 and 34 — and the start of a run looks as easy as it plays while the top
 looks as hard as it is. 35 wears every colour, round the clock, and turns slowly through them. The
 shades are
 made by `tools/palette.js`: the hues and the steps are set there, and
-`npm run palette` writes them into `css/numbers.css`. The bomb and infinity
-are the two pieces that are not numbers, and neither looks like one: the bomb
-is black, with its 0 in white and rainbow dust blowing out from its centre
-to its sides, a colour explosion held in, and it shakes harder through its
-last three turns; infinity stands on its point, a white diamond with a black
-edge and the sign on it. While the board waits for a tap — a column for the
-bomb in hand, a number for infinity — the edge of the grid wears the bomb
-dial's light, the rainbow going round it and strokes going out past it, and
-a line under the score says what is wanted.
-Whatever leaves the board — merged, blown up, swept by infinity —
+`npm run palette` writes them into `css/numbers.css`. The bomb is the one
+piece that is not a number, and it does not look like one: black, with its 0
+in white and rainbow dust blowing out from its centre to its sides, a colour
+explosion held in, and it shakes harder through its last three turns. While
+the board waits for the column the bomb in hand goes to, the edge of the grid
+wears the dial's light, the rainbow going round it and strokes going out past
+it, and a line under the score says what is wanted.
+Whatever leaves the board — merged or blown up —
 breaks into squares of itself that fly to the edges of the screen: a few
 large squares for a lone merge, more and smaller the longer the chain, up to
 the third link, and the most for a blast.
@@ -112,10 +110,10 @@ css/
   game.css         the board, the hand, the buttons, how-to, about, end card
   charges.css      the bomb dial
   backdrop.css     a soft rainbow turning behind everything
-  numbers.css      the palette, the flat square pieces, and infinity's diamond
+  numbers.css      the palette, the flat square pieces, the black bomb
 js/
   core/            config (every tunable number), events, storage
-  data/pieces.js   the ladder 1–35, the bomb, infinity
+  data/pieces.js   the ladder 1–35, the bomb (and infinity, switched off)
   systems/         state and rules — board, round, charges; never touch the DOM
   ui/              listen and draw — never edit state directly
   pages/game.js    boot
@@ -145,7 +143,7 @@ All tuning lives in `js/core/config.js`. To see what a change does before
 making it, `npm run sim` plays the game a few hundred runs over with a
 steady, middling strategy, under the settings listed at the top of
 `tools/sim.js`, and reports how many runs reach 35 and where the rest die
-(`npm run sim -- 500 base,nolate` for more runs of fewer settings).
+(`npm run sim -- 500 base,withinf` for more runs of fewer settings).
 
 ## Run it in a browser
 
@@ -320,7 +318,7 @@ clear of most of the rulebook; what remains, and where it stands:
   Xcode for iOS, `versionName` and `versionCode` in
   `android/app/build.gradle` for Android.
 - Play a run on a real device from the store build, not the browser: a merge,
-  a chain, the bomb, infinity, the tutorial from `?`, sound, start over, and a
+  a chain, the bomb, the tutorial from `?`, sound, start over, and a
   reload mid-run to see the run come back.
 - Screenshots come from a device or simulator running the store build; the
   stores want them at the device's own size.
